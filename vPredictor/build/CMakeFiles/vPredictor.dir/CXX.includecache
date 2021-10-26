@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/code/demo_cts/code_kitchen/vPredictor/vPredictor.cpp
+yarp/os/all.h
+-
+yarp/sig/Vector.h
+-
+event-driven/all.h
+-
+fdeep/fdeep.hpp
+-
+deque
+-
+

@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/code/demo_cts/code_kitchen/COMtracker/COMtracker.cpp
+yarp/os/all.h
+-
+yarp/sig/all.h
+-
+event-driven/all.h
+-
+iostream
+-
+fstream
+-
+mutex
+-
+

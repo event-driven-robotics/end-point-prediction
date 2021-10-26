@@ -1,0 +1,308 @@
+#include <yarp/os/all.h>
+#include <yarp/sig/all.h>
+#include <event-driven/all.h>
+
+#include <iostream>
+#include <fstream>
+#include <mutex>
+
+using namespace ev;
+using namespace yarp::os;
+using namespace yarp::sig;
+
+/*////////////////////////////////////////////////////////////////////////////*/
+// ROIQ
+/*////////////////////////////////////////////////////////////////////////////*/
+
+class roiq {
+
+    public:
+
+        deque<AE> q;
+        unsigned int n;
+        yarp::sig::Vector roi;
+
+        roiq() {
+            roi.resize(4);
+            n = 1000;
+            roi[0] = 0; roi[1] = 1000;
+            roi[2] = 0; roi[3] = 1000;
+        }
+
+        void setSize(unsigned int value) {
+            n = value;
+            while(q.size() > n)
+                q.pop_back();
+        }
+
+        void setROI(int xl, int xh, int yl, int yh) {
+            roi[0] = xl; roi[1] = xh;
+            roi[2] = yl; roi[3] = yh;
+        }
+
+        int add(const AE &v) {
+            if(v.x < roi[0] || v.x > roi[1] || v.y < roi[2] || v.y > roi[3])
+                return 0;
+            q.push_front(v);
+            return 1;
+        }
+
+        void clean() {
+            deque<AE> _q;
+            for(auto &v : q) {
+            if(v.x < roi[0] || v.x > roi[1] || v.y < roi[2] || v.y > roi[3])
+                continue;
+            _q.push_back(v);
+            }
+            q = _q;
+        }
+
+};
+
+
+/*////////////////////////////////////////////////////////////////////////////*/
+// CENTER-OF-MASS TRACKER
+/*////////////////////////////////////////////////////////////////////////////*/
+
+class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
+
+    private:
+
+        //data structures and ports
+        roiq qROI;
+        std::mutex m;
+        resolution res;
+
+        vWritePort output_port;
+        vReadPort< vector<AE> > input_port;
+
+        //variables
+        int activation_thresh;   // between 0 and 100
+        int n_rate, n_mass, delta, rate_to_use;
+
+        double x, y, s;
+        double std_dev, prev_t, reset_time;
+
+        bool tracking;
+
+
+    public:
+
+        COMtracker() {}
+
+        bool configure(yarp::os::ResourceFinder &rf) {
+            //module name and control
+            setName((rf.check("name", Value("/COMtracker")).asString()).c_str());
+
+            //options and parameters
+            n_mass = rf.check("events", Value(100)).asInt();
+            activation_thresh = rf.check("activation_thresh", Value(70)).asInt();
+            delta = rf.check("spatial_delta", Value(3)).asInt();
+            n_rate = rf.check("update_rate", Value(100)).asInt();
+            reset_time = rf.check("reset_time", Value(1.0)).asDouble();
+            s = rf.check("roi_width", Value(80)).asInt();
+            s = s/2;
+
+            if(!input_port.open(getName() + "/AE:i"))
+                return false;
+
+            if(!output_port.open(getName() + "/LAE:o"))
+                return false;
+
+            res.height = 240;
+            res.width = 304;
+
+            resetTracker();
+
+            return Thread::start();
+        }
+
+        void run() {
+
+            unsigned int i = 0;
+
+            yarp::os::Stamp ystamp;
+
+            deque<LabelledAE> out_queue;
+            LabelledAE ev;
+
+            double k = 1/std::sqrt(1 - activation_thresh/100);
+
+            //read some data to extract the channel
+            const vector<AE> *q = input_port.read(ystamp);
+            if(!q || Thread::isStopping()) return;
+
+            double avg_x, avg_y;
+            while(true) {
+                //update the ROI
+                m.lock();
+
+                //add new events to the ROI
+                unsigned int addEvents = 0;
+                while(addEvents < rate_to_use) {
+
+                    //if we ran out of events get a new queue
+                    if(i >= q->size()) {
+                        i = 0;
+                        q = input_port.read(ystamp);
+                        if(!q || Thread::isStopping()) {
+                            m.unlock();
+                            return;
+                        }
+                    }
+
+                    addEvents += qROI.add((*q)[i++]);
+                }
+
+                m.unlock();
+
+                qROI.setSize(n_mass);
+
+                //sum the mass in the window.
+                avg_x = 0;
+                avg_y = 0;
+                for(auto i = 0; i < qROI.q.size(); i++) {
+                    avg_x += qROI.q[i].x;
+                    avg_y += qROI.q[i].y;
+                }
+
+                //compute mean
+                avg_x = avg_x/qROI.q.size();
+                avg_y = avg_y/qROI.q.size();
+
+                /*/////////////////////////// ADAPTIVE QUEUE SIZE ///////////////////////////*/
+                /*
+                //compute standard deviation
+                double diff = 0, sq_diff_sum = 0;
+                for(auto i = 0; i < qROI.q.size(); i++) {
+                    diff = (qROI.q[i].x - avg_x)*(qROI.q[i].x - avg_x) + (qROI.q[i].y - avg_y)*(qROI.q[i].y - avg_y);
+                    sq_diff_sum += diff;
+                }
+                std_dev = std::sqrt(sq_diff_sum / qROI.q.size());
+
+                if(!tracking) {
+                    // if the "activation_thresh" percentage of the
+                    // events is in the ROI radius, then activate
+                    if (k * std_dev < s) {
+                        rate_to_use = n_rate; // set update rate to original event number
+                        tracking = true;
+                        prev_t = Time::now();
+                    }
+                    else
+                        continue;
+                }
+
+                n_mass = 2*M_PI*std::round(k * std_dev);   // assuming circle
+                */
+
+                /*/////////////////////////// FIXED QUEUE SIZE ///////////////////////////*/
+                if(!tracking) {
+                    //compute standard deviation
+                    double diff = 0, sq_diff_sum = 0;
+                    for(auto i = 0; i < qROI.q.size(); i++) {
+                        diff = (qROI.q[i].x - avg_x)*(qROI.q[i].x - avg_x) + (qROI.q[i].y - avg_y)*(qROI.q[i].y - avg_y);
+                        sq_diff_sum += diff;
+                    }
+                    std_dev = std::sqrt(sq_diff_sum / qROI.q.size());
+
+                    // if the "activation_thresh" percentage of the events is
+                    // in the radius around the mean value, then activate
+                    if (k * std_dev < s) {
+                        rate_to_use = n_rate; // set update rate to original event number
+                        tracking = true;
+                        prev_t = Time::now();
+                    }
+                    else
+                        continue;
+                } else if ((Time::now() - prev_t)  < reset_time) {
+                    //move the centre
+                    x = avg_x;
+                    y = avg_y;
+
+                    //from the previous update resize if needed
+                    qROI.setROI(x - s, x + s, y - s, y + s);
+
+                    //output new position only if further than delta from previous one
+                    static double px = -100;
+                    static double py = -100;
+
+                    int delta_x = x - px;
+                    int delta_y = y - py;
+                    if(std::sqrt(delta_x*delta_x + delta_y*delta_y) > delta) {
+                        px = x;
+                        py = y;
+
+                        ev.ID = 0;
+                        ev.x = x;
+                        ev.y = y;
+                        ev.stamp = q->back().stamp;
+                        out_queue.push_back(ev);
+                        output_port.write(out_queue, ystamp);
+                        out_queue.clear();
+                    }
+
+                    prev_t = Time::now();
+
+                } else {
+                    resetTracker();
+                    yInfo() << "Tracker resetted after " << Time::now() - prev_t << " seconds.";
+                }
+            }
+        }
+
+        void resetTracker() {
+            x = res.width * 0.5;
+            y = res.height * 0.5;
+
+            std_dev = 0.0;
+            rate_to_use = n_mass;
+
+            qROI.clean();
+            qROI.setSize(n_mass);
+            qROI.setROI(0, res.width, 0, res.height);
+
+            tracking = false;
+        }
+
+        double getPeriod() {
+            return 1.0;
+        }
+
+        bool updateModule() {
+            return true;
+        }
+
+        bool interruptModule() {
+            return Thread::stop();
+        }
+
+        void onStop() {
+            input_port.close();
+            output_port.close();
+        }
+};
+
+
+/*////////////////////////////////////////////////////////////////////////////*/
+// MAIN
+/*////////////////////////////////////////////////////////////////////////////*/
+
+int main(int argc, char * argv[])
+{
+    /* initialize yarp network */
+    yarp::os::Network yarp;
+    if(!yarp.checkNetwork()) {
+        std::cout << "Could not connect to YARP" << std::endl;
+        return false;
+    }
+
+    /* create the module */
+    COMtracker tracker;
+
+    /* prepare and configure the resource finder */
+    yarp::os::ResourceFinder rf;
+    rf.setVerbose( false );
+    rf.configure( argc, argv );
+
+    return tracker.runModule(rf);
+}
