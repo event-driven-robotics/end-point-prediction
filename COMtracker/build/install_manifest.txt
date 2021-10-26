@@ -1,0 +1,2 @@
+/usr/local/bin/COMtracker
+/usr/local/share/event-driven/applications/COMtracker.xml
