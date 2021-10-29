@@ -1,4 +1,4 @@
-# Install script for directory: /code/demo_cts/code_kitchen/COMtracker
+# Install script for directory: /code/demo_cts/COMtracker
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,7 +44,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker"
          RPATH "$ORIGIN/:$ORIGIN/../lib:/usr/local/lib")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/code/demo_cts/code_kitchen/COMtracker/build/COMtracker")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/code/demo_cts/COMtracker/build/COMtracker")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker")
     file(RPATH_CHANGE
@@ -58,7 +58,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/event-driven/applications" TYPE FILE FILES "/code/demo_cts/code_kitchen/COMtracker/app/COMtracker.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/event-driven/applications" TYPE FILE FILES "/code/demo_cts/COMtracker/app/COMtracker.xml")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -69,5 +69,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/code/demo_cts/code_kitchen/COMtracker/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/code/demo_cts/COMtracker/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

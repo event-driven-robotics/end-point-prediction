@@ -41,7 +41,7 @@ def moving_avg(x, n):
 
 
 
-n_points = 5
+n_points = 3
 n_mov_avg = 5
 
 ################################################## REAL TRAJECTORIES ##################################################
@@ -53,6 +53,7 @@ real_spatial_delta = []
 real_x_init, real_y_init = [], []
 real_x_vel, real_y_vel, real_angle = [], [], []
 real_avg_acceleration = []
+real_accelerations = []
 real_avg_x_acceleration, real_avg_y_acceleration = [], []
 real_mean_rate_list, real_std_rate_list = [], []
 real_mean_rate_x_list, real_std_rate_x_list = [], []
@@ -82,17 +83,40 @@ for t in tqdm(real_trajs, "Loading real trajectories..."):
     real_y_vel.append(y_vel_init)
     real_angle.append(np.arctan2(y_vel_init, x_vel_init))
     # average acceleration
-    velocities_x = (real_trajectory[1:n_points+1, 1] - real_trajectory[:n_points, 1]) / (real_trajectory[1:n_points+1, 0] - real_trajectory[:n_points, 0])
-    velocities_y = (real_trajectory[1:n_points + 1, 2] - real_trajectory[:n_points, 2]) / (real_trajectory[1:n_points+1, 0] - real_trajectory[:n_points, 0])
-    x_accel_init = (velocities_x[-1] - velocities_x[0]) / (real_trajectory[n_points, 0] - real_trajectory[1, 0])
-    y_accel_init = (velocities_y[-1] - velocities_y[0]) / (real_trajectory[n_points, 0] - real_trajectory[1, 0])
+    x_space_init2 = sum(real_trajectory[n_points+1:2*n_points+1, 1] - real_trajectory[n_points:2*n_points, 1])
+    y_space_init2 = sum(real_trajectory[n_points+1:2*n_points+1, 2] - real_trajectory[n_points:2*n_points, 2])
+    x_vel_init2 = np.abs(x_space_init2) / (real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
+    y_vel_init2 = np.abs(y_space_init2) / (real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
+    x_accel_init = (x_vel_init2-x_vel_init)/(real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
+    y_accel_init = (y_vel_init2-y_vel_init)/(real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
+    accel_init = np.sqrt(x_accel_init**2 + y_accel_init**2)
+
+    x_space_final = sum(real_trajectory[-n_points:, 1] - real_trajectory[-n_points-1:-1, 1])
+    y_space_final = sum(real_trajectory[-n_points:, 2] - real_trajectory[-n_points-1:-1, 2])
+    x_vel_final = x_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
+    y_vel_final = y_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
+    x_space_final2 = sum(real_trajectory[-2*n_points:-n_points, 1] - real_trajectory[-2*n_points-1:-n_points-1, 1])
+    y_space_final2 = sum(real_trajectory[-2*n_points:-n_points, 2] - real_trajectory[-2*n_points-1:-n_points-1, 2])
+    x_vel_final2 = np.abs(x_space_final2) / (real_trajectory[-n_points-1, 0] - real_trajectory[-2*n_points-1, 0])
+    y_vel_final2 = np.abs(y_space_final2) / (real_trajectory[-n_points-1, 0] - real_trajectory[-2*n_points-1, 0])
+    x_accel_final = (x_vel_final-x_vel_final2)/(real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
+    y_accel_final = (y_vel_final-y_vel_final2)/(real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
+    accel_final = np.sqrt(x_accel_final**2 + y_accel_final**2)
+    real_accelerations.append(np.array([x_accel_final/x_accel_init, y_accel_final/y_accel_init]))
+
+    # velocities_x = (real_trajectory[1:n_points+1, 1] - real_trajectory[:n_points, 1]) / (real_trajectory[1:n_points+1, 0] - real_trajectory[:n_points, 0])
+    # velocities_y = (real_trajectory[1:n_points + 1, 2] - real_trajectory[:n_points, 2]) / (real_trajectory[1:n_points+1, 0] - real_trajectory[:n_points, 0])
+    # x_accel_init = (velocities_x[-1] - velocities_x[0]) / (real_trajectory[n_points, 0] - real_trajectory[1, 0])
+    # y_accel_init = (velocities_y[-1] - velocities_y[0]) / (real_trajectory[n_points, 0] - real_trajectory[1, 0])
+
     # x_space_final = sum(real_trajectory[-n_points:, 1] - real_trajectory[-n_points-1:-1, 1])
     # y_space_final = sum(real_trajectory[-n_points:, 2] - real_trajectory[-n_points-1:-1, 2])
     # x_vel_final = x_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
     # y_vel_final = y_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
     # x_acc_final = x_vel_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
     # y_acc_final = y_vel_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    real_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
+
+    # real_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
     # timestep rate
     delta_t = real_trajectory[1:, 0] - real_trajectory[:-1, 0] # time difference between two subsequent tracked positions
     perc_points = np.arange(0.0, 1.1, 0.1)
@@ -158,6 +182,7 @@ sim_spatial_delta = []
 sim_x_init, sim_y_init = [], []
 sim_x_vel, sim_y_vel, sim_angle = [], [], []
 sim_avg_acceleration = []
+sim_accelerations = []
 sim_avg_x_acceleration, sim_avg_y_acceleration = [], []
 sim_mean_rate_list, sim_std_rate_list = [], []
 sim_mean_rate_x_list, sim_std_rate_x_list = [], []
@@ -188,11 +213,39 @@ for t in tqdm(sim_trajs, "Loading sim trajectories..."):
         sim_y_vel.append(y_vel_init)
         sim_angle.append(np.arctan2(y_vel_init, x_vel_init))
         # average acceleration
-        x_space_final = sum(sim_trajectory[-n_points:, 1] - sim_trajectory[-n_points-1:-1, 1])
-        y_space_final = sum(sim_trajectory[-n_points:, 2] - sim_trajectory[-n_points-1:-1, 2])
-        x_vel_final = x_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
-        y_vel_final = y_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
-        sim_avg_acceleration.append((x_vel_final - x_vel_init) / sim_trajectory[-1, 0])
+        x_space_init2 = sum(sim_trajectory[n_points + 1:2 * n_points + 1, 1] - sim_trajectory[n_points:2 * n_points, 1])
+        y_space_init2 = sum(sim_trajectory[n_points + 1:2 * n_points + 1, 2] - sim_trajectory[n_points:2 * n_points, 2])
+        x_vel_init2 = np.abs(x_space_init2) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
+        y_vel_init2 = np.abs(y_space_init2) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
+        x_accel_init = (x_vel_init2 - x_vel_init) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
+        y_accel_init = (y_vel_init2 - y_vel_init) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
+        accel_init = np.sqrt(x_accel_init ** 2 + y_accel_init ** 2)
+
+        x_space_final = sum(sim_trajectory[-n_points:, 1] - sim_trajectory[-n_points - 1:-1, 1])
+        y_space_final = sum(sim_trajectory[-n_points:, 2] - sim_trajectory[-n_points - 1:-1, 2])
+        x_vel_final = x_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
+        y_vel_final = y_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
+        x_space_final2 = sum(sim_trajectory[-2 * n_points:-n_points, 1] - sim_trajectory[-2 * n_points - 1:-n_points - 1, 1])
+        y_space_final2 = sum(sim_trajectory[-2 * n_points:-n_points, 2] - sim_trajectory[-2 * n_points - 1:-n_points - 1, 2])
+        x_vel_final2 = np.abs(x_space_final2) / (sim_trajectory[-n_points - 1, 0] - sim_trajectory[-2 * n_points - 1, 0])
+        y_vel_final2 = np.abs(y_space_final2) / (sim_trajectory[-n_points - 1, 0] - sim_trajectory[-2 * n_points - 1, 0])
+        x_accel_final = (x_vel_final - x_vel_final2) / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
+        y_accel_final = (y_vel_final - y_vel_final2) / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
+        sim_accelerations.append(np.array([x_accel_final / x_accel_init, y_accel_final / y_accel_init]))
+
+        # velocities_x = (sim_trajectory[1:n_points+1, 1] - sim_trajectory[:n_points, 1]) / (sim_trajectory[1:n_points+1, 0] - sim_trajectory[:n_points, 0])
+        # velocities_y = (sim_trajectory[1:n_points + 1, 2] - sim_trajectory[:n_points, 2]) / (sim_trajectory[1:n_points+1, 0] - sim_trajectory[:n_points, 0])
+        # x_accel_init = (velocities_x[-1] - velocities_x[0]) / (sim_trajectory[n_points, 0] - sim_trajectory[1, 0])
+        # y_accel_init = (velocities_y[-1] - velocities_y[0]) / (sim_trajectory[n_points, 0] - sim_trajectory[1, 0])
+
+        # x_space_final = sum(sim_trajectory[-n_points:, 1] - sim_trajectory[-n_points-1:-1, 1])
+        # y_space_final = sum(sim_trajectory[-n_points:, 2] - sim_trajectory[-n_points-1:-1, 2])
+        # x_vel_final = x_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
+        # y_vel_final = y_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
+        # x_acc_final = x_vel_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
+        # y_acc_final = y_vel_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
+
+        # sim_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
         # timestep rate
         delta_t = sim_trajectory[1:, 0] - sim_trajectory[:-1, 0]
         perc_points = np.arange(0.0, 1.1, 0.1)

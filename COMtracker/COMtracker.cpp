@@ -93,8 +93,9 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
         std::mutex m;
         resolution res;
 
-        vWritePort output_port;
+        vWritePort v_output_port;
         vReadPort< vector<AE> > input_port;
+        yarp::os::BufferedPort<yarp::os::Bottle> output_port;
 
         //variables
         int activation_thresh;   // between 0 and 100
@@ -109,8 +110,6 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
 
         cv::Mat trackImg;
         yarp::sig::ImageOf<yarp::sig::PixelBgr> trackMap;
-
-        yarp::os::BufferedPort<yarp::os::Bottle> coordPort;
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > image_out;
 
     public:
@@ -133,10 +132,10 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
             if(!input_port.open(getName() + "/AE:i"))
                 return false;
 
-            if(!output_port.open(getName() + "/LAE:o"))
+            if(!v_output_port.open(getName() + "/LAE:o"))
                 return false;
 
-            if(!coordPort.open(getName() + "/coords:o"))
+            if(!output_port.open(getName() + "/com:o"))
                 return false;
 
             if(!image_out.open(getName() + "/image:o"))
@@ -161,7 +160,7 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
             yarp::os::Stamp ystamp;
 
             LabelledAE ev;
-            deque<LabelledAE> out_queue;
+            deque<LabelledAE> v_out_queue;
 
 //            double k = 1/std::sqrt(1 - activation_thresh/100);
             double k = SeriesInverseError20thOrder(activation_thresh/100.0) * sqrt(2);
@@ -249,6 +248,8 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
                     if (k * std_dev < s) {
                         tracking = true;
                         prev_t = Time::now();
+                    } else {
+                        resetTracker();
                     }
                 }
 
@@ -278,19 +279,19 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
 //                        yWarning() << qROI.q.size() << qROI.q.front().stamp;
 //                        yInfo() << "x = " << x << "   y = " << y;
 
-                        out_queue.push_back(ev);
-                        output_port.write(out_queue, ystamp);
+                        v_out_queue.push_back(ev);
+                        v_output_port.write(v_out_queue, ystamp);
 
-                        yarp::os::Bottle& coordBottle = coordPort.prepare();
+                        yarp::os::Bottle& coordBottle = output_port.prepare();
                         coordBottle.clear();
                         coordBottle.addDouble(x);
                         coordBottle.addDouble(y);
-                        coordPort.write();
-//                        yInfo() << Time::now() - prev_t;
-                        prev_t = Time::now();       //must be done here or in the if above, when outputting an event???
+                        output_port.write();
+                        prev_t = Time::now();
+                        //                        yInfo() << Time::now() - prev_t;
                     }
 
-                    out_queue.clear();
+                    v_out_queue.clear();
                 }
             }
         }
@@ -345,7 +346,7 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
 
         void onStop() {
             input_port.close();
-            output_port.close();
+            v_output_port.close();
         }
 };
 

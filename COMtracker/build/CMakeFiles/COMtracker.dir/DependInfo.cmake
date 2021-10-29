@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/code/demo_cts/code_kitchen/COMtracker/COMtracker.cpp" "/code/demo_cts/code_kitchen/COMtracker/build/CMakeFiles/COMtracker.dir/COMtracker.cpp.o"
+  "/code/demo_cts/COMtracker/COMtracker.cpp" "/code/demo_cts/COMtracker/build/CMakeFiles/COMtracker.dir/COMtracker.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

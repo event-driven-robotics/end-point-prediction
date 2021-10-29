@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/code/demo_cts/code_kitchen/vPredictor/vPredictor.cpp
+/code/demo_cts/vPredictor/vPredictor.cpp
 yarp/os/all.h
 -
 yarp/sig/Vector.h
