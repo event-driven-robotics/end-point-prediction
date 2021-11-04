@@ -402,7 +402,7 @@ plt.show()
 # Bouncing height
 fig8 = plt.figure(8)
 ticks = [label1, label2]
-bouncing_height = [D1_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)], D2_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)]]
+bouncing_height = [D1_bouncing_coordinates[~np.isnan(D1_bouncing_coordinates)], D2_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)]]
 plt.boxplot(bouncing_height, vert=True, patch_artist=True, labels=ticks)
 plt.ylabel(r' Bouncing height [pxl]')
 plt.grid()
