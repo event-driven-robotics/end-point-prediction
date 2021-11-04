@@ -19,6 +19,7 @@ matplotlib.rcParams['ps.fonttype'] = 42
 plt.style.use(params)
 
 
+################################################## FUNCTIONS ##################################################
 
 def extract_perc_values(values, scaled_time, perc_points, range):
     means, stds = [], []
@@ -33,280 +34,295 @@ def extract_perc_values(values, scaled_time, perc_points, range):
         stds.append(np.std(elems))
     return means, stds
 
-
 def moving_avg(x, n):
     cumsum = np.cumsum(x, axis=0, dtype=float)
     cumsum[n:] = cumsum[n:] - cumsum[:-n]
     return cumsum[n-1:] / float(n)
 
 
+################################################## PARAMETERS ##################################################
 
-n_points = 3
+n_points = 5
 n_mov_avg = 5
 
-################################################## REAL TRAJECTORIES ##################################################
-real_folder = "real_trajectories"
-real_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), real_folder)
-real_trajs = sorted([traj for traj in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), real_path)) if traj.endswith('.txt')])
-all_real_trajectories = []
-real_spatial_delta = []
-real_x_init, real_y_init = [], []
-real_x_vel, real_y_vel, real_angle = [], [], []
-real_avg_acceleration = []
-real_accelerations = []
-real_avg_x_acceleration, real_avg_y_acceleration = [], []
-real_mean_rate_list, real_std_rate_list = [], []
-real_mean_rate_x_list, real_std_rate_x_list = [], []
-real_x_restitution_coeffs, real_y_restitution_coeffs = [], []
-real_bouncing_coordinates = []
-for t in tqdm(real_trajs, "Loading real trajectories..."):
-    real_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), real_folder, t), delimiter=",")
-    real_trajectory[:, 0] = np.cumsum(real_trajectory[:, 0])
-    real_trajectory[:, 1] = 304 - real_trajectory[:, 1]    # flip x-coordinate
-    real_trajectory[:, 2] = 240 - real_trajectory[:, 2]    # flip y-coordinate
-    all_real_trajectories.append(real_trajectory)
+D1_folder = "real_trajectories_final"
+D2_folder = "sim_trajectories_final"
+
+label1 = "real"
+label2 = "simul"
+
+perc_points = np.arange(0.0, 1.1, 0.1)
+
+
+################################################ DATASET 1 PROCESSING ################################################
+
+D1_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), D1_folder)
+D1_files = sorted([traj for traj in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), D1_path)) if traj.endswith('.txt')])
+D1_trajectories, D1_spatial_delta = [], []
+D1_init, D1_init_vel, D1_angle, D1_mean_x_vel_list, D1_std_x_vel_list = [], [], [], [], []
+D1_avg_acceleration, D1_accelerations, D1_avg_x_acceleration, D1_avg_y_acceleration = [], [], [], []
+D1_mean_rate_list, D1_std_rate_list, D1_mean_rate_x_list, D1_std_rate_x_list = [], [], [], []
+D1_restitution_coeffs = []
+D1_bouncing_coordinates = []
+for t in tqdm(D1_files, "Loading dataset_1 trajectories..."):
+
+    # load data
+    D1_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), D1_folder, t), delimiter=",")[:, :3]
+    D1_trajectory[:, 0] = np.cumsum(D1_trajectory[:, 0])
+    if D1_folder[0:7] != "asynch_" : D1_trajectory[:, 1] = 304 - D1_trajectory[:, 1]    # flip x-coordinate
+    D1_trajectory[:, 2] = 240 - D1_trajectory[:, 2]    # flip y-coordinate
+    D1_trajectories.append(D1_trajectory)
+
     # spatial delta
-    real_spatial_x = real_trajectory[1:, 1] - real_trajectory[:-1, 1]
-    real_spatial_y = real_trajectory[1:, 2] - real_trajectory[:-1, 2]
-    real_spatial_delta.append(np.mean(np.sqrt(real_spatial_x**2 + real_spatial_y**2)))
+    deltas = D1_trajectory[1:, 1:3] - D1_trajectory[:-1, 1:3]
+    D1_spatial_delta.append(np.mean(np.sqrt(deltas[:,0]**2 + deltas[:,1]**2)))
+
     # initial coordinates
-    real_x_init.append(real_trajectory[0, 1])
-    real_y_init.append(real_trajectory[0, 2])
+    D1_init.append(np.array([D1_trajectory[0, 1], D1_trajectory[0, 2]]))
+
     # initial xy velocity and angle
-    x_space_init = sum(real_trajectory[1:n_points+1, 1] - real_trajectory[:n_points, 1])
-    y_space_init = sum(real_trajectory[1:n_points+1, 2] - real_trajectory[:n_points, 2])
-    x_vel_init = np.abs(x_space_init) / real_trajectory[n_points, 0]
-    y_vel_init = np.abs(y_space_init) / real_trajectory[n_points, 0]
-    # x_acc_init = np.abs(x_vel_init) / real_trajectory[n_points, 0]
-    # y_acc_init = np.abs(y_vel_init) / real_trajectory[n_points, 0]
-    real_x_vel.append(x_vel_init)
-    real_y_vel.append(y_vel_init)
-    real_angle.append(np.arctan2(y_vel_init, x_vel_init))
-    # average acceleration
-    x_space_init2 = sum(real_trajectory[n_points+1:2*n_points+1, 1] - real_trajectory[n_points:2*n_points, 1])
-    y_space_init2 = sum(real_trajectory[n_points+1:2*n_points+1, 2] - real_trajectory[n_points:2*n_points, 2])
-    x_vel_init2 = np.abs(x_space_init2) / (real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
-    y_vel_init2 = np.abs(y_space_init2) / (real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
-    x_accel_init = (x_vel_init2-x_vel_init)/(real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
-    y_accel_init = (y_vel_init2-y_vel_init)/(real_trajectory[2*n_points, 0] - real_trajectory[n_points, 0])
-    accel_init = np.sqrt(x_accel_init**2 + y_accel_init**2)
+    vel_init = sum(D1_trajectory[1:n_points+1, 1:3] - D1_trajectory[:n_points, 1:3]) / D1_trajectory[n_points, 0]
+    # x_acc_init = np.abs(x_vel_init) / D1_trajectory[n_points, 0]
+    # y_acc_init = np.abs(y_vel_init) / D1_trajectory[n_points, 0]
+    D1_init_vel.append(vel_init)
+    D1_angle.append(np.arctan2(vel_init[1], vel_init[0]))
 
-    x_space_final = sum(real_trajectory[-n_points:, 1] - real_trajectory[-n_points-1:-1, 1])
-    y_space_final = sum(real_trajectory[-n_points:, 2] - real_trajectory[-n_points-1:-1, 2])
-    x_vel_final = x_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    y_vel_final = y_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    x_space_final2 = sum(real_trajectory[-2*n_points:-n_points, 1] - real_trajectory[-2*n_points-1:-n_points-1, 1])
-    y_space_final2 = sum(real_trajectory[-2*n_points:-n_points, 2] - real_trajectory[-2*n_points-1:-n_points-1, 2])
-    x_vel_final2 = np.abs(x_space_final2) / (real_trajectory[-n_points-1, 0] - real_trajectory[-2*n_points-1, 0])
-    y_vel_final2 = np.abs(y_space_final2) / (real_trajectory[-n_points-1, 0] - real_trajectory[-2*n_points-1, 0])
-    x_accel_final = (x_vel_final-x_vel_final2)/(real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    y_accel_final = (y_vel_final-y_vel_final2)/(real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    accel_final = np.sqrt(x_accel_final**2 + y_accel_final**2)
-    real_accelerations.append(np.array([x_accel_final/x_accel_init, y_accel_final/y_accel_init]))
+    # # average acceleration
+    # x_space_init2 = sum(D1_trajectory[n_points+1:2*n_points+1, 1] - D1_trajectory[n_points:2*n_points, 1])
+    # y_space_init2 = sum(D1_trajectory[n_points+1:2*n_points+1, 2] - D1_trajectory[n_points:2*n_points, 2])
+    # x_vel_init2 = np.abs(x_space_init2) / (D1_trajectory[2*n_points, 0] - D1_trajectory[n_points, 0])
+    # y_vel_init2 = np.abs(y_space_init2) / (D1_trajectory[2*n_points, 0] - D1_trajectory[n_points, 0])
+    # x_accel_init = (x_vel_init2-x_vel_init)/(D1_trajectory[2*n_points, 0] - D1_trajectory[n_points, 0])
+    # y_accel_init = (y_vel_init2-y_vel_init)/(D1_trajectory[2*n_points, 0] - D1_trajectory[n_points, 0])
+    # accel_init = np.sqrt(x_accel_init**2 + y_accel_init**2)
+    #
+    # x_space_final = sum(D1_trajectory[-n_points:, 1] - D1_trajectory[-n_points-1:-1, 1])
+    # y_space_final = sum(D1_trajectory[-n_points:, 2] - D1_trajectory[-n_points-1:-1, 2])
+    # x_vel_final = x_space_final / (D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # y_vel_final = y_space_final / (D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # x_space_final2 = sum(D1_trajectory[-2*n_points:-n_points, 1] - D1_trajectory[-2*n_points-1:-n_points-1, 1])
+    # y_space_final2 = sum(D1_trajectory[-2*n_points:-n_points, 2] - D1_trajectory[-2*n_points-1:-n_points-1, 2])
+    # x_vel_final2 = np.abs(x_space_final2) / (D1_trajectory[-n_points-1, 0] - D1_trajectory[-2*n_points-1, 0])
+    # y_vel_final2 = np.abs(y_space_final2) / (D1_trajectory[-n_points-1, 0] - D1_trajectory[-2*n_points-1, 0])
+    # x_accel_final = (x_vel_final-x_vel_final2)/(D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # y_accel_final = (y_vel_final-y_vel_final2)/(D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # accel_final = np.sqrt(x_accel_final**2 + y_accel_final**2)
+    # D1_accelerations.append(np.array([x_accel_final/x_accel_init, y_accel_final/y_accel_init]))
+    #
+    # # velocities_x = (D1_trajectory[1:n_points+1, 1] - D1_trajectory[:n_points, 1]) / (D1_trajectory[1:n_points+1, 0] - D1_trajectory[:n_points, 0])
+    # # velocities_y = (D1_trajectory[1:n_points + 1, 2] - D1_trajectory[:n_points, 2]) / (D1_trajectory[1:n_points+1, 0] - D1_trajectory[:n_points, 0])
+    # # x_accel_init = (velocities_x[-1] - velocities_x[0]) / (D1_trajectory[n_points, 0] - D1_trajectory[1, 0])
+    # # y_accel_init = (velocities_y[-1] - velocities_y[0]) / (D1_trajectory[n_points, 0] - D1_trajectory[1, 0])
+    #
+    # # x_space_final = sum(D1_trajectory[-n_points:, 1] - D1_trajectory[-n_points-1:-1, 1])
+    # # y_space_final = sum(D1_trajectory[-n_points:, 2] - D1_trajectory[-n_points-1:-1, 2])
+    # # x_vel_final = x_space_final / (D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # # y_vel_final = y_space_final / (D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # # x_acc_final = x_vel_final / (D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    # # y_acc_final = y_vel_final / (D1_trajectory[-1, 0] - D1_trajectory[-n_points-1, 0])
+    #
+    # # D1_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
 
-    # velocities_x = (real_trajectory[1:n_points+1, 1] - real_trajectory[:n_points, 1]) / (real_trajectory[1:n_points+1, 0] - real_trajectory[:n_points, 0])
-    # velocities_y = (real_trajectory[1:n_points + 1, 2] - real_trajectory[:n_points, 2]) / (real_trajectory[1:n_points+1, 0] - real_trajectory[:n_points, 0])
-    # x_accel_init = (velocities_x[-1] - velocities_x[0]) / (real_trajectory[n_points, 0] - real_trajectory[1, 0])
-    # y_accel_init = (velocities_y[-1] - velocities_y[0]) / (real_trajectory[n_points, 0] - real_trajectory[1, 0])
-
-    # x_space_final = sum(real_trajectory[-n_points:, 1] - real_trajectory[-n_points-1:-1, 1])
-    # y_space_final = sum(real_trajectory[-n_points:, 2] - real_trajectory[-n_points-1:-1, 2])
-    # x_vel_final = x_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    # y_vel_final = y_space_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    # x_acc_final = x_vel_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-    # y_acc_final = y_vel_final / (real_trajectory[-1, 0] - real_trajectory[-n_points-1, 0])
-
-    # real_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
     # timestep rate
-    delta_t = real_trajectory[1:, 0] - real_trajectory[:-1, 0] # time difference between two subsequent tracked positions
-    perc_points = np.arange(0.0, 1.1, 0.1)
-    normalized_time = real_trajectory[1:, 0]/real_trajectory[-1, 0] # normalized timestamps
+    delta_t = D1_trajectory[1:, 0] - D1_trajectory[:-1, 0]
+    normalized_time = D1_trajectory[1:, 0] / D1_trajectory[-1, 0]
     mean_rate, std_rate = extract_perc_values(delta_t, normalized_time, perc_points, range=0.05)
-    real_mean_rate_list.append(mean_rate)
-    real_std_rate_list.append(std_rate)
+    D1_mean_rate_list.append(mean_rate)
+    # D1_std_rate_list.append(std_rate)
+
     # timestep rate normalized over x
-    normalized_x = real_trajectory[1:, 1]/304
+    normalized_x = D1_trajectory[1:, 1] / 304
     mean_rate_x, std_rate_x = extract_perc_values(delta_t, normalized_x, perc_points, range=0.05)
-    real_mean_rate_x_list.append(mean_rate_x)
-    real_std_rate_x_list.append(std_rate_x)
+    D1_mean_rate_x_list.append(mean_rate_x)
+    # D1_std_rate_x_list.append(std_rate_x)
+
+    # average horizontal velocity
+    D1_x_vel = (D1_trajectory[1:, 1] - D1_trajectory[:-1, 1]) / (D1_trajectory[1:, 0] - D1_trajectory[:-1, 0])
+    D1_x_vel[np.abs(D1_x_vel) == np.inf] = np.nan
+    mean_rate_x, std_rate_x = extract_perc_values(D1_x_vel, normalized_time, perc_points, range=0.05)
+    D1_mean_x_vel_list.append(mean_rate_x)
+    # D1_std_x_vel_list.append(std_rate_x)
+
     # acceleration at bounce
     # find the first time the derivative gets positive after being negative
     found = False
-    real_moving_avg_traj = moving_avg(real_trajectory, n_mov_avg)
-    for i in range(1, len(real_moving_avg_traj)-n_points-1):
-        if (real_moving_avg_traj[i, 2] - real_moving_avg_traj[i-1, 2] < 0) and (real_moving_avg_traj[i+1, 2] - real_moving_avg_traj[i, 2] > 0):
+    D1_moving_avg_traj = moving_avg(D1_trajectory, n_mov_avg)
+    for i in range(1, len(D1_moving_avg_traj)-n_points-1):
+        if (D1_moving_avg_traj[i, 2] - D1_moving_avg_traj[i-1, 2] < 0) and (D1_moving_avg_traj[i+1, 2] - D1_moving_avg_traj[i, 2] > 0):
             bouncing_index = i
             found = True
             break
     if found:
-        x_before_bouncing = sum(real_moving_avg_traj[bouncing_index-n_points+1:bouncing_index+1, 1] - real_moving_avg_traj[bouncing_index-n_points:bouncing_index, 1])
-        y_before_bouncing = sum(real_moving_avg_traj[bouncing_index-n_points+1:bouncing_index+1, 2] - real_moving_avg_traj[bouncing_index-n_points:bouncing_index, 2])
-        delta_t_pre = real_moving_avg_traj[bouncing_index, 0] - real_moving_avg_traj[bouncing_index - n_points, 0]
-        x_vel_pre = np.abs(x_before_bouncing/delta_t_pre)
-        y_vel_pre = np.abs(y_before_bouncing/delta_t_pre)
-        x_after_bouncing = sum(real_moving_avg_traj[bouncing_index+1:min(bouncing_index + n_points + 1, len(real_moving_avg_traj)), 1] - real_moving_avg_traj[bouncing_index:min(bouncing_index+n_points, len(real_moving_avg_traj)-1), 1])
-        y_after_bouncing = sum(real_moving_avg_traj[bouncing_index+1:min(bouncing_index + n_points + 1, len(real_moving_avg_traj)), 2] - real_moving_avg_traj[bouncing_index:min(bouncing_index+n_points, len(real_moving_avg_traj)-1), 2])
-        delta_t_post = real_moving_avg_traj[min(bouncing_index+n_points, len(real_moving_avg_traj)-1), 0] - real_moving_avg_traj[bouncing_index, 0]
-        x_vel_post = np.abs(x_after_bouncing/delta_t_post)
-        y_vel_post = np.abs(y_after_bouncing/delta_t_post)
-        real_x_restitution_coeffs.append(x_vel_post/x_vel_pre)
-        real_y_restitution_coeffs.append(y_vel_post/y_vel_pre)
-        real_avg_x_acceleration.append((x_vel_post - x_vel_pre) / delta_t_post)
-        real_avg_y_acceleration.append((y_vel_post - y_vel_pre) / delta_t_post)
+        pos_before_bouncing = sum(D1_moving_avg_traj[bouncing_index-n_points+1:bouncing_index+1, 1:3] - D1_moving_avg_traj[bouncing_index-n_points:bouncing_index, 1:3])
+        delta_t_pre = D1_moving_avg_traj[bouncing_index, 0] - D1_moving_avg_traj[bouncing_index - n_points, 0]
+        vel_pre = np.abs(pos_before_bouncing/delta_t_pre)
+        pos_after_bouncing = sum(D1_moving_avg_traj[bouncing_index+1:min(bouncing_index + n_points + 1, len(D1_moving_avg_traj)), 1:3] - D1_moving_avg_traj[bouncing_index:min(bouncing_index+n_points, len(D1_moving_avg_traj)-1), 1:3])
+        delta_t_post = D1_moving_avg_traj[min(bouncing_index+n_points, len(D1_moving_avg_traj)-1), 0] - D1_moving_avg_traj[bouncing_index, 0]
+        vel_post = np.abs(pos_after_bouncing/delta_t_post)
+        D1_restitution_coeffs.append(vel_post/vel_pre)
+        D1_avg_x_acceleration.append((vel_post[0] - vel_pre[0]) / delta_t_post)
+        D1_avg_y_acceleration.append((vel_post[1] - vel_pre[1]) / delta_t_post)
         # bouncing coordinate (table height)
-        real_bouncing_coordinates.append(real_moving_avg_traj[i, 2])
+        D1_bouncing_coordinates.append(D1_moving_avg_traj[i, 2])
     else:
-        real_x_restitution_coeffs.append(np.nan)
-        real_y_restitution_coeffs.append(np.nan)
-        real_bouncing_coordinates.append(np.nan)
+        D1_restitution_coeffs.append(np.array([np.nan, np.nan]))
+        D1_bouncing_coordinates.append(np.nan)
 
-# mean_all_real_trajectories = np.mean(np.array(all_real_trajectories), axis=0)
-# std_all_real_trajectories = np.std(all_real_trajectories, axis=0)
-real_mean_spatial_delta = np.mean(real_spatial_delta)
-real_mean_rate_list = np.array(real_mean_rate_list)
-real_mean_rate = np.nanmean(real_mean_rate_list, axis=0)
-real_std_rate = np.nanstd(real_mean_rate_list, axis=0)
-real_mean_rate_x = np.nanmean(real_mean_rate_x_list, axis=0)
-real_std_rate_x = np.nanstd(real_mean_rate_x_list, axis=0)
-real_mean_rate_x_list = np.array(real_mean_rate_x_list)
-real_bouncing_coordinates = np.array(real_bouncing_coordinates)
-print("Bouncing height for real trajs:   mean = ", np.nanmean(real_bouncing_coordinates), "     std = " , np.nanstd(real_bouncing_coordinates))
+D1_mean_spatial_delta   = np.nanmean(D1_spatial_delta)
+D1_init                 = np.array(D1_init)
+D1_init_vel             = np.array(D1_init_vel)
+D1_mean_rate            = np.nanmean(np.array(D1_mean_rate_list), axis=0)
+D1_std_rate             = np.nanstd(np.array(D1_mean_rate_list), axis=0)
+D1_mean_rate_x          = np.nanmean(np.array(D1_mean_rate_x_list), axis=0)
+D1_std_rate_x           = np.nanstd(np.array(D1_mean_rate_x_list), axis=0)
+D1_mean_x_vel           = np.nanmean(np.array(D1_mean_x_vel_list), axis=0)
+D1_std_x_vel            = np.nanstd(np.array(D1_mean_x_vel_list), axis=0)
+D1_restitution_coeffs   = np.array(D1_restitution_coeffs)
+D1_bouncing_coordinates = np.array(D1_bouncing_coordinates)
 
 
-################################################ SIMULATED TRAJECTORIES ################################################
-sim_folder = "asynch_trajectories_new"
-sim_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), sim_folder)
-sim_trajs = sorted([traj for traj in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), sim_path)) if traj.endswith('.txt')])
-all_sim_trajectories = []
-sim_spatial_delta = []
-sim_x_init, sim_y_init = [], []
-sim_x_vel, sim_y_vel, sim_angle = [], [], []
-sim_avg_acceleration = []
-sim_accelerations = []
-sim_avg_x_acceleration, sim_avg_y_acceleration = [], []
-sim_mean_rate_list, sim_std_rate_list = [], []
-sim_mean_rate_x_list, sim_std_rate_x_list = [], []
-sim_x_restitution_coeffs, sim_y_restitution_coeffs = [], []
-sim_bouncing_coordinates = []
-for t in tqdm(sim_trajs, "Loading sim trajectories..."):
-    sim_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), sim_folder, t), delimiter=",")
-    if sim_trajectory.size == 0:
-        print(t)
+################################################ DATASET 2 PROCESSING ################################################
+
+D2_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), D2_folder)
+D2_files = sorted([traj for traj in os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), D2_path)) if traj.endswith('.txt')])
+D2_trajectories, D2_spatial_delta = [], []
+D2_init, D2_init_vel, D2_angle, D2_mean_x_vel_list, D2_std_x_vel_list = [], [], [], [], []
+D2_avg_acceleration, D2_accelerations, D2_avg_x_acceleration, D2_avg_y_acceleration = [], [], [], []
+D2_mean_rate_list, D2_std_rate_list, D2_mean_rate_x_list, D2_std_rate_x_list = [], [], [], []
+D2_restitution_coeffs = []
+D2_bouncing_coordinates = []
+for t in tqdm(D2_files, "Loading dataset_2 trajectories..."):
+
+    # load data
+    D2_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), D2_folder, t), delimiter=",")[:, :3]
+    D2_trajectory[:, 0] = np.cumsum(D2_trajectory[:, 0])
+    if D2_folder[0:7] != "asynch_" : D2_trajectory[:, 1] = 304 - D2_trajectory[:, 1]    # flip x-coordinate
+    D2_trajectory[:, 2] = 240 - D2_trajectory[:, 2]    # flip y-coordinate
+    D2_trajectories.append(D2_trajectory)
+
+    # spatial delta
+    deltas = D2_trajectory[1:, 1:3] - D2_trajectory[:-1, 1:3]
+    D2_spatial_delta.append(np.mean(np.sqrt(deltas[:,0]**2 + deltas[:,1]**2)))
+
+    # initial coordinates
+    D2_init.append(np.array([D2_trajectory[0, 1], D2_trajectory[0, 2]]))
+
+    # initial xy velocity and angle
+    vel_init = sum(D2_trajectory[1:n_points+1, 1:3] - D2_trajectory[:n_points, 1:3]) / D2_trajectory[n_points, 0]
+    # x_acc_init = np.abs(x_vel_init) / D2_trajectory[n_points, 0]
+    # y_acc_init = np.abs(y_vel_init) / D2_trajectory[n_points, 0]
+    D2_init_vel.append(vel_init)
+    D2_angle.append(np.arctan2(vel_init[1], vel_init[0]))
+
+    # # average acceleration
+    # x_space_init2 = sum(D2_trajectory[n_points+1:2*n_points+1, 1] - D2_trajectory[n_points:2*n_points, 1])
+    # y_space_init2 = sum(D2_trajectory[n_points+1:2*n_points+1, 2] - D2_trajectory[n_points:2*n_points, 2])
+    # x_vel_init2 = np.abs(x_space_init2) / (D2_trajectory[2*n_points, 0] - D2_trajectory[n_points, 0])
+    # y_vel_init2 = np.abs(y_space_init2) / (D2_trajectory[2*n_points, 0] - D2_trajectory[n_points, 0])
+    # x_accel_init = (x_vel_init2-x_vel_init)/(D2_trajectory[2*n_points, 0] - D2_trajectory[n_points, 0])
+    # y_accel_init = (y_vel_init2-y_vel_init)/(D2_trajectory[2*n_points, 0] - D2_trajectory[n_points, 0])
+    # accel_init = np.sqrt(x_accel_init**2 + y_accel_init**2)
+    #
+    # x_space_final = sum(D2_trajectory[-n_points:, 1] - D2_trajectory[-n_points-1:-1, 1])
+    # y_space_final = sum(D2_trajectory[-n_points:, 2] - D2_trajectory[-n_points-1:-1, 2])
+    # x_vel_final = x_space_final / (D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # y_vel_final = y_space_final / (D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # x_space_final2 = sum(D2_trajectory[-2*n_points:-n_points, 1] - D2_trajectory[-2*n_points-1:-n_points-1, 1])
+    # y_space_final2 = sum(D2_trajectory[-2*n_points:-n_points, 2] - D2_trajectory[-2*n_points-1:-n_points-1, 2])
+    # x_vel_final2 = np.abs(x_space_final2) / (D2_trajectory[-n_points-1, 0] - D2_trajectory[-2*n_points-1, 0])
+    # y_vel_final2 = np.abs(y_space_final2) / (D2_trajectory[-n_points-1, 0] - D2_trajectory[-2*n_points-1, 0])
+    # x_accel_final = (x_vel_final-x_vel_final2)/(D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # y_accel_final = (y_vel_final-y_vel_final2)/(D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # accel_final = np.sqrt(x_accel_final**2 + y_accel_final**2)
+    # D2_accelerations.append(np.array([x_accel_final/x_accel_init, y_accel_final/y_accel_init]))
+    #
+    # # velocities_x = (D2_trajectory[1:n_points+1, 1] - D2_trajectory[:n_points, 1]) / (D2_trajectory[1:n_points+1, 0] - D2_trajectory[:n_points, 0])
+    # # velocities_y = (D2_trajectory[1:n_points + 1, 2] - D2_trajectory[:n_points, 2]) / (D2_trajectory[1:n_points+1, 0] - D2_trajectory[:n_points, 0])
+    # # x_accel_init = (velocities_x[-1] - velocities_x[0]) / (D2_trajectory[n_points, 0] - D2_trajectory[1, 0])
+    # # y_accel_init = (velocities_y[-1] - velocities_y[0]) / (D2_trajectory[n_points, 0] - D2_trajectory[1, 0])
+    #
+    # # x_space_final = sum(D2_trajectory[-n_points:, 1] - D2_trajectory[-n_points-1:-1, 1])
+    # # y_space_final = sum(D2_trajectory[-n_points:, 2] - D2_trajectory[-n_points-1:-1, 2])
+    # # x_vel_final = x_space_final / (D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # # y_vel_final = y_space_final / (D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # # x_acc_final = x_vel_final / (D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    # # y_acc_final = y_vel_final / (D2_trajectory[-1, 0] - D2_trajectory[-n_points-1, 0])
+    #
+    # # D2_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
+
+    # timestep rate
+    delta_t = D2_trajectory[1:, 0] - D2_trajectory[:-1, 0]
+    normalized_time = D2_trajectory[1:, 0] / D2_trajectory[-1, 0]
+    mean_rate, std_rate = extract_perc_values(delta_t, normalized_time, perc_points, range=0.05)
+    D2_mean_rate_list.append(mean_rate)
+    # D2_std_rate_list.append(std_rate)
+
+    # timestep rate normalized over x
+    normalized_x = D2_trajectory[1:, 1] / 304
+    mean_rate_x, std_rate_x = extract_perc_values(delta_t, normalized_x, perc_points, range=0.05)
+    D2_mean_rate_x_list.append(mean_rate_x)
+    # D2_std_rate_x_list.append(std_rate_x)
+
+    # average horizontal velocity
+    D2_x_vel = (D2_trajectory[1:, 1] - D2_trajectory[:-1, 1]) / (D2_trajectory[1:, 0] - D2_trajectory[:-1, 0])
+    D2_x_vel[np.abs(D2_x_vel) == np.inf] = np.nan
+    mean_rate_x, std_rate_x = extract_perc_values(D2_x_vel, normalized_time, perc_points, range=0.05)
+    D2_mean_x_vel_list.append(mean_rate_x)
+    # D2_std_x_vel_list.append(std_rate_x)
+
+    # acceleration at bounce
+    # find the first time the derivative gets positive after being negative
+    found = False
+    D2_moving_avg_traj = moving_avg(D2_trajectory, n_mov_avg)
+    for i in range(1, len(D2_moving_avg_traj)-n_points-1):
+        if (D2_moving_avg_traj[i, 2] - D2_moving_avg_traj[i-1, 2] < 0) and (D2_moving_avg_traj[i+1, 2] - D2_moving_avg_traj[i, 2] > 0):
+            bouncing_index = i
+            found = True
+            break
+    if found:
+        pos_before_bouncing = sum(D2_moving_avg_traj[bouncing_index-n_points+1:bouncing_index+1, 1:3] - D2_moving_avg_traj[bouncing_index-n_points:bouncing_index, 1:3])
+        delta_t_pre = D2_moving_avg_traj[bouncing_index, 0] - D2_moving_avg_traj[bouncing_index - n_points, 0]
+        vel_pre = np.abs(pos_before_bouncing/delta_t_pre)
+        pos_after_bouncing = sum(D2_moving_avg_traj[bouncing_index+1:min(bouncing_index + n_points + 1, len(D2_moving_avg_traj)), 1:3] - D2_moving_avg_traj[bouncing_index:min(bouncing_index+n_points, len(D2_moving_avg_traj)-1), 1:3])
+        delta_t_post = D2_moving_avg_traj[min(bouncing_index+n_points, len(D2_moving_avg_traj)-1), 0] - D2_moving_avg_traj[bouncing_index, 0]
+        vel_post = np.abs(pos_after_bouncing/delta_t_post)
+        D2_restitution_coeffs.append(vel_post/vel_pre)
+        D2_avg_x_acceleration.append((vel_post[0] - vel_pre[0]) / delta_t_post)
+        D2_avg_y_acceleration.append((vel_post[1] - vel_pre[1]) / delta_t_post)
+        # bouncing coordinate (table height)
+        D2_bouncing_coordinates.append(D2_moving_avg_traj[i, 2])
     else:
-        sim_trajectory[:, 0] = np.cumsum(sim_trajectory[:, 0])
-        # sim_trajectory[:, 1] = 304 - sim_trajectory[:, 1]    # flip x-coordinate
-        sim_trajectory[:, 2] = 240 - sim_trajectory[:, 2]    # flip y-coordinate
-        all_sim_trajectories.append(sim_trajectory)
-        # spatial delta
-        sim_spatial_x = sim_trajectory[1:, 1] - sim_trajectory[:-1, 1]
-        sim_spatial_y = sim_trajectory[1:, 2] - sim_trajectory[:-1, 2]
-        sim_spatial_delta.append(np.mean(np.sqrt(sim_spatial_x**2 + sim_spatial_y**2)))
-        # initial coordinates
-        sim_x_init.append(sim_trajectory[0, 1])
-        sim_y_init.append(sim_trajectory[0, 2])
-        # initial xy velocity and angle
-        x_space_init = sum(sim_trajectory[1:n_points+1, 1] - sim_trajectory[:n_points, 1])
-        y_space_init = sum(sim_trajectory[1:n_points+1, 2] - sim_trajectory[:n_points, 2])
-        x_vel_init = np.abs(x_space_init) / sim_trajectory[n_points, 0]
-        y_vel_init = np.abs(y_space_init) / sim_trajectory[n_points, 0]
-        sim_x_vel.append(x_vel_init)
-        sim_y_vel.append(y_vel_init)
-        sim_angle.append(np.arctan2(y_vel_init, x_vel_init))
-        # average acceleration
-        x_space_init2 = sum(sim_trajectory[n_points + 1:2 * n_points + 1, 1] - sim_trajectory[n_points:2 * n_points, 1])
-        y_space_init2 = sum(sim_trajectory[n_points + 1:2 * n_points + 1, 2] - sim_trajectory[n_points:2 * n_points, 2])
-        x_vel_init2 = np.abs(x_space_init2) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
-        y_vel_init2 = np.abs(y_space_init2) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
-        x_accel_init = (x_vel_init2 - x_vel_init) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
-        y_accel_init = (y_vel_init2 - y_vel_init) / (sim_trajectory[2 * n_points, 0] - sim_trajectory[n_points, 0])
-        accel_init = np.sqrt(x_accel_init ** 2 + y_accel_init ** 2)
+        D2_restitution_coeffs.append(np.array([np.nan, np.nan]))
+        D2_bouncing_coordinates.append(np.nan)
 
-        x_space_final = sum(sim_trajectory[-n_points:, 1] - sim_trajectory[-n_points - 1:-1, 1])
-        y_space_final = sum(sim_trajectory[-n_points:, 2] - sim_trajectory[-n_points - 1:-1, 2])
-        x_vel_final = x_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
-        y_vel_final = y_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
-        x_space_final2 = sum(sim_trajectory[-2 * n_points:-n_points, 1] - sim_trajectory[-2 * n_points - 1:-n_points - 1, 1])
-        y_space_final2 = sum(sim_trajectory[-2 * n_points:-n_points, 2] - sim_trajectory[-2 * n_points - 1:-n_points - 1, 2])
-        x_vel_final2 = np.abs(x_space_final2) / (sim_trajectory[-n_points - 1, 0] - sim_trajectory[-2 * n_points - 1, 0])
-        y_vel_final2 = np.abs(y_space_final2) / (sim_trajectory[-n_points - 1, 0] - sim_trajectory[-2 * n_points - 1, 0])
-        x_accel_final = (x_vel_final - x_vel_final2) / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
-        y_accel_final = (y_vel_final - y_vel_final2) / (sim_trajectory[-1, 0] - sim_trajectory[-n_points - 1, 0])
-        sim_accelerations.append(np.array([x_accel_final / x_accel_init, y_accel_final / y_accel_init]))
-
-        # velocities_x = (sim_trajectory[1:n_points+1, 1] - sim_trajectory[:n_points, 1]) / (sim_trajectory[1:n_points+1, 0] - sim_trajectory[:n_points, 0])
-        # velocities_y = (sim_trajectory[1:n_points + 1, 2] - sim_trajectory[:n_points, 2]) / (sim_trajectory[1:n_points+1, 0] - sim_trajectory[:n_points, 0])
-        # x_accel_init = (velocities_x[-1] - velocities_x[0]) / (sim_trajectory[n_points, 0] - sim_trajectory[1, 0])
-        # y_accel_init = (velocities_y[-1] - velocities_y[0]) / (sim_trajectory[n_points, 0] - sim_trajectory[1, 0])
-
-        # x_space_final = sum(sim_trajectory[-n_points:, 1] - sim_trajectory[-n_points-1:-1, 1])
-        # y_space_final = sum(sim_trajectory[-n_points:, 2] - sim_trajectory[-n_points-1:-1, 2])
-        # x_vel_final = x_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
-        # y_vel_final = y_space_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
-        # x_acc_final = x_vel_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
-        # y_acc_final = y_vel_final / (sim_trajectory[-1, 0] - sim_trajectory[-n_points-1, 0])
-
-        # sim_avg_acceleration.append(np.array([x_acc_final/x_acc_init, y_acc_final/y_acc_init]))
-        # timestep rate
-        delta_t = sim_trajectory[1:, 0] - sim_trajectory[:-1, 0]
-        perc_points = np.arange(0.0, 1.1, 0.1)
-        normalized_time = sim_trajectory[1:, 0]/sim_trajectory[-1, 0]
-        mean_rate, std_rate = extract_perc_values(delta_t, normalized_time, perc_points, range=0.05)
-        sim_mean_rate_list.append(mean_rate)
-        sim_std_rate_list.append(std_rate)
-        # timestep rate normalized over x
-        normalized_x = sim_trajectory[1:, 1]/304
-        mean_rate_x , std_rate_x = extract_perc_values(delta_t, normalized_x, perc_points, range=0.05)
-        sim_mean_rate_x_list.append(mean_rate_x)
-        sim_std_rate_x_list.append(std_rate_x)
-        # acceleration at bounce
-        # find the first time the derivative gets positive after being negative
-        found = False
-        sim_moving_avg_traj = moving_avg(sim_trajectory, n_mov_avg)
-        for i in range(1, len(sim_trajectory)-n_points-1):
-            if (sim_moving_avg_traj[i, 2] - sim_moving_avg_traj[i-1, 2] < 0) and (sim_moving_avg_traj[i+1, 2] - sim_moving_avg_traj[i, 2] > 0):
-                bouncing_index = i
-                found = True
-                break
-        if found:
-            x_before_bouncing = sum(sim_moving_avg_traj[bouncing_index-n_points+1:bouncing_index+1, 1] - sim_moving_avg_traj[bouncing_index-n_points:bouncing_index, 1])
-            y_before_bouncing = sum(sim_moving_avg_traj[bouncing_index-n_points+1:bouncing_index+1, 2] - sim_moving_avg_traj[bouncing_index-n_points:bouncing_index, 2])
-            delta_t_pre = sim_moving_avg_traj[bouncing_index, 0] - sim_moving_avg_traj[bouncing_index - n_points, 0]
-            x_vel_pre = np.abs(x_before_bouncing/delta_t_pre)
-            y_vel_pre = np.abs(y_before_bouncing/delta_t_pre)
-            x_after_bouncing = sum(sim_moving_avg_traj[bouncing_index+1:min(bouncing_index+n_points+1, len(sim_moving_avg_traj)), 1] - sim_moving_avg_traj[bouncing_index:min(bouncing_index+n_points, len(sim_moving_avg_traj)-1), 1])
-            y_after_bouncing = sum(sim_moving_avg_traj[bouncing_index+1:min(bouncing_index+n_points+1, len(sim_moving_avg_traj)), 2] - sim_moving_avg_traj[bouncing_index:min(bouncing_index+n_points, len(sim_moving_avg_traj)-1), 2])
-            delta_t_post = sim_moving_avg_traj[min(bouncing_index+n_points, len(sim_moving_avg_traj)-1), 0] - sim_moving_avg_traj[bouncing_index, 0]
-            x_vel_post = np.abs(x_after_bouncing/delta_t_post)
-            y_vel_post = np.abs(y_after_bouncing/delta_t_post)
-            sim_x_restitution_coeffs.append(x_vel_post/x_vel_pre)
-            sim_y_restitution_coeffs.append(y_vel_post/y_vel_pre)
-            sim_avg_x_acceleration.append((x_vel_post - x_vel_pre) / delta_t_post)
-            sim_avg_y_acceleration.append((y_vel_post - y_vel_pre) / delta_t_post)
-            # bouncing coordinate (table height)
-            sim_bouncing_coordinates.append(sim_moving_avg_traj[i, 2])
-        else:
-            sim_x_restitution_coeffs.append(np.nan)
-            sim_y_restitution_coeffs.append(np.nan)
-            sim_bouncing_coordinates.append(np.nan)
-
-# mean_all_sim_trajectories = np.mean(all_sim_trajectories, axis=0)
-# std_all_sim_trajectories = np.std(all_sim_trajectories, axis=0)
-sim_mean_spatial_delta = np.mean(sim_spatial_delta)
-sim_mean_rate_list = np.array(sim_mean_rate_list)
-sim_mean_rate = np.nanmean(sim_mean_rate_list, axis=0)
-sim_std_rate = np.nanstd(sim_mean_rate_list, axis=0)
-sim_mean_rate_x = np.nanmean(sim_mean_rate_x_list, axis=0)
-sim_std_rate_x = np.nanstd(sim_mean_rate_x_list, axis=0)
-sim_mean_rate_x_list = np.array(sim_mean_rate_x_list)
-sim_bouncing_coordinates = np.array(sim_bouncing_coordinates)
-print("Bouncing height for simulated trajs:   mean = ", np.nanmean(sim_bouncing_coordinates), "     std = " , np.nanstd(sim_bouncing_coordinates))
+D2_mean_spatial_delta   = np.nanmean(D2_spatial_delta)
+D2_init                 = np.array(D2_init)
+D2_init_vel             = np.array(D2_init_vel)
+D2_mean_rate            = np.nanmean(np.array(D2_mean_rate_list), axis=0)
+D2_std_rate             = np.nanstd(np.array(D2_mean_rate_list), axis=0)
+D2_mean_rate_x          = np.nanmean(np.array(D2_mean_rate_x_list), axis=0)
+D2_std_rate_x           = np.nanstd(np.array(D2_mean_rate_x_list), axis=0)
+D2_mean_x_vel           = np.nanmean(np.array(D2_mean_x_vel_list), axis=0)
+D2_std_x_vel            = np.nanstd(np.array(D2_mean_x_vel_list), axis=0)
+D2_restitution_coeffs   = np.array(D2_restitution_coeffs)
+D2_bouncing_coordinates = np.array(D2_bouncing_coordinates)
 
 
 ######################################################## PLOTS ########################################################
-# Initial Position
+
+# Spatial Delta
 fig1 = plt.figure(1)
-plt.scatter(sim_x_init, sim_y_init, color='#ED0DD9', alpha=0.4, s=100, label='simulated')
-plt.scatter(real_x_init, real_y_init, color='darkcyan', alpha=0.4, s=100, label='real')
+ticks = [label1, label2]
+spatial_data = [D1_spatial_delta, D2_spatial_delta]
+plt.boxplot(spatial_data, vert=True, patch_artist=True, labels=ticks)
+plt.ylabel(r' Spatial delta [pxl]')
+plt.grid()
+plt.show()
+
+# Initial Position
+fig2 = plt.figure(2)
+plt.scatter(D2_init[:,0], D2_init[:,1], color='#ED0DD9', alpha=0.4, s=100, label=label2)
+plt.scatter(D1_init[:,0], D1_init[:,1], color='darkcyan', alpha=0.4, s=100, label=label1)
 plt.title(r'Initial Position')
 plt.xlabel(r'init X [pxl]')
 plt.ylabel(r'init Y [pxl]')
@@ -315,9 +331,9 @@ plt.legend()
 plt.show()
 
 # Initial Velocity
-fig2 = plt.figure(2)
-plt.scatter(sim_x_vel, sim_y_vel, color='#ED0DD9', alpha=0.4, s=100, label='simulated')
-plt.scatter(real_x_vel, real_y_vel, color='darkcyan', alpha=0.4, s=100, label='real')
+fig3 = plt.figure(3)
+plt.scatter(D2_init_vel[:,0], D2_init_vel[:,1], color='#ED0DD9', alpha=0.4, s=100, label=label2)
+plt.scatter(D1_init_vel[:,0], D1_init_vel[:,1], color='darkcyan', alpha=0.4, s=100, label=label1)
 plt.title(r'Initial Velocity (first '+ str(n_points) + ' points)')
 plt.xlabel(r'init X vel [pxl/s]')
 plt.ylabel(r'init Y vel [pxl/s]')
@@ -325,32 +341,22 @@ plt.grid()
 plt.legend()
 plt.show()
 
-# Spatial Delta
-fig3, ax3 = plt.subplots()
-ticks = ['real', 'simulated']
-spatial_data = [real_spatial_delta, sim_spatial_delta]
-plt.boxplot(spatial_data, vert=True, patch_artist=True, labels=ticks)
-plt.ylabel(r' Spatial delta [pxl]')
-plt.grid()
-plt.show()
-
-# Mean acceleration
-fig4, ax4 = plt.subplots()
-ticks = ['real', 'simulated']
-accel_data = [real_avg_acceleration, sim_avg_acceleration]
-plt.boxplot(accel_data, vert=True, patch_artist=True, labels=ticks)
-plt.ylabel(r' Average acceleration [pxl]')
-plt.grid()
-plt.show()
+# # Mean acceleration
+# fig4 = plt.figure(4)
+# ticks = [label1, label2]
+# accel_data = [D1_avg_acceleration, D2_avg_acceleration]
+# plt.boxplot(accel_data, vert=True, patch_artist=True, labels=ticks)
+# plt.ylabel(r' Average acceleration [pxl]')
+# plt.grid()
+# plt.show()
 
 # Delta_t
-fig5, ax5 = plt.subplots()
-plt.figure(figsize=(18, 14))
+fig5 = plt.figure(5)
 plt.gca()
-plt.plot((perc_points*100).astype(int), real_mean_rate*1000, color='darkcyan', label='real')
-plt.fill_between((perc_points*100).astype(int), y1=(real_mean_rate-real_std_rate)*1000, y2=(real_mean_rate+real_std_rate)*1000, alpha=0.3, color='darkcyan')
-plt.plot((perc_points*100).astype(int), sim_mean_rate*1000, color='#ED0DD9', label='simulated')
-plt.fill_between((perc_points*100).astype(int), y1=(sim_mean_rate-sim_std_rate)*1000, y2=(sim_mean_rate+sim_std_rate)*1000, alpha=0.3, color='#ED0DD9')
+plt.plot((perc_points*100).astype(int), D1_mean_rate*1000, color='darkcyan', label=label1)
+plt.fill_between((perc_points*100).astype(int), y1=(D1_mean_rate-D1_std_rate)*1000, y2=(D1_mean_rate+D1_std_rate)*1000, alpha=0.3, color='darkcyan')
+plt.plot((perc_points*100).astype(int), D2_mean_rate*1000, color='#ED0DD9', label=label2)
+plt.fill_between((perc_points*100).astype(int), y1=(D2_mean_rate-D2_std_rate)*1000, y2=(D2_mean_rate+D2_std_rate)*1000, alpha=0.3, color='#ED0DD9')
 plt.xlabel('Trajectory %')
 plt.ylabel('Average rate [ms]')
 plt.grid()
@@ -358,23 +364,35 @@ plt.legend()
 plt.show()
 
 # Delta_t horizontal
-fig6, ax6 = plt.subplots()
-plt.figure(figsize=(18, 14))
+fig6 = plt.figure(6)
 plt.gca()
-plt.plot((perc_points*100).astype(int), real_mean_rate_x*1000, color='darkcyan', label='real')
-plt.fill_between((perc_points*100).astype(int), y1=(real_mean_rate_x-real_std_rate_x)*1000, y2=(real_mean_rate_x+real_std_rate_x)*1000, alpha=0.3, color='darkcyan')
-plt.plot((perc_points*100).astype(int), sim_mean_rate_x*1000, color='#ED0DD9', label='simulated')
-plt.fill_between((perc_points*100).astype(int), y1=(sim_mean_rate_x-sim_std_rate_x)*1000, y2=(sim_mean_rate_x+sim_std_rate_x)*1000, alpha=0.3, color='#ED0DD9')
+plt.plot((perc_points*100).astype(int), D1_mean_rate_x*1000, color='darkcyan', label=label1)
+plt.fill_between((perc_points*100).astype(int), y1=(D1_mean_rate_x-D1_std_rate_x)*1000, y2=(D1_mean_rate_x+D1_std_rate_x)*1000, alpha=0.3, color='darkcyan')
+plt.plot((perc_points*100).astype(int), D2_mean_rate_x*1000, color='#ED0DD9', label=label2)
+plt.fill_between((perc_points*100).astype(int), y1=(D2_mean_rate_x-D2_std_rate_x)*1000, y2=(D2_mean_rate_x+D2_std_rate_x)*1000, alpha=0.3, color='#ED0DD9')
 plt.xlabel('Trajectory %')
 plt.ylabel('Average horizontal rate [ms]')
 plt.grid()
 plt.legend()
 plt.show()
 
+# average horizontal velocity
+fig10 = plt.figure(10)
+plt.gca()
+plt.plot((perc_points*100).astype(int), D1_mean_x_vel, color='darkcyan', label=label1)
+plt.fill_between((perc_points*100).astype(int), y1=(D1_mean_x_vel-D1_std_x_vel), y2=(D1_mean_x_vel+D1_std_x_vel), alpha=0.3, color='darkcyan')
+plt.plot((perc_points*100).astype(int), D2_mean_x_vel, color='#ED0DD9', label=label2)
+plt.fill_between((perc_points*100).astype(int), y1=(D2_mean_x_vel-D2_std_x_vel), y2=(D2_mean_x_vel+D2_std_x_vel), alpha=0.3, color='#ED0DD9')
+plt.xlabel('Trajectory %')
+plt.ylabel('Average horizontal velocity [pxl/s]')
+plt.grid()
+plt.legend()
+plt.show()
+
 # Coefficient Of Restitution
 fig7 = plt.figure(7)
-plt.scatter(sim_x_restitution_coeffs, sim_y_restitution_coeffs, color='#ED0DD9', alpha=0.4, s=100, label='simulated')
-plt.scatter(real_x_restitution_coeffs, real_y_restitution_coeffs, color='darkcyan', alpha=0.4, s=100, label='real')
+plt.scatter(D2_restitution_coeffs[:,0], D2_restitution_coeffs[:,1], color='#ED0DD9', alpha=0.4, s=100, label=label2)
+plt.scatter(D1_restitution_coeffs[:,0], D1_restitution_coeffs[:,1], color='darkcyan', alpha=0.4, s=100, label=label1)
 plt.xlabel(r' COR along X')
 plt.ylabel(r'COR along Y')
 plt.grid()
@@ -383,8 +401,8 @@ plt.show()
 
 # Bouncing height
 fig8 = plt.figure(8)
-ticks = ['real', 'simulated']
-bouncing_height = [real_bouncing_coordinates, sim_bouncing_coordinates[~np.isnan(sim_bouncing_coordinates)]]
+ticks = [label1, label2]
+bouncing_height = [D1_bouncing_coordinates, D2_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)]]
 plt.boxplot(bouncing_height, vert=True, patch_artist=True, labels=ticks)
 plt.ylabel(r' Bouncing height [pxl]')
 plt.grid()
@@ -392,17 +410,16 @@ plt.show()
 
 
 # All trajectories
-fig9 = plt.figure()
-for s in all_sim_trajectories:
-    plt.plot(s[:, 1], s[:, 2], color='#ED0DD9', alpha=0.4)
-for r in all_real_trajectories:
-    plt.plot(r[:, 1], r[:, 2], color='darkcyan', alpha=0.4)
+fig9 = plt.figure(9)
+for s in D2_trajectories: plt.plot(s[:, 1], s[:, 2], color='#ED0DD9', alpha=0.4)
+for r in D1_trajectories: plt.plot(r[:, 1], r[:, 2], color='darkcyan', alpha=0.4)
 plt.xlabel('x coord. [pxl]')
 plt.ylabel('y coord. [pxl]')
 plt.grid()
 plt.legend()
 plt.show()
 
+pass
 
 # # Real Delta_t
 # fig4, ax4 = plt.subplots()
@@ -443,5 +460,3 @@ plt.show()
 # plt.ylabel('[ms]')
 # plt.grid()
 # plt.show()
-
-pass
