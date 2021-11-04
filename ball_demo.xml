@@ -1,0 +1,97 @@
+<application>
+<name>vBallDemo</name>
+
+<dependencies>
+</dependencies>
+
+<module>
+    <name> yarpdatadumper </name>
+    <parameters>--name /record_events</parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> zynqGrabber </name>
+    <parameters> --visLeftOn false </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> vPreProcess </name>
+    <parameters>--undistort true --camera_calibration_file /data/outputCalib_test3.ini </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> COMtracker </name>
+    <parameters> --n_mass 300 --activation_thresh 70 --spatial_delta 2 --n_rate 1 --reset_time 1.0 --roi_width 80 </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> vPredictor </name>
+    <parameters> </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> vFramerLite</name>
+    <parameters> --displays "(/right (AE AE-INT))" --width 304 --height 240</parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+   <name> yarpview </name>
+   <parameters>--name /viewRight --x 30 --y 30 --w 640 --h 480 --synch </parameters>
+   <node> localhost </node>
+</module>
+
+<connection>
+  <from>/zynqGrabber/AE:o</from>
+  <to>/record_events</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/zynqGrabber/AE:o</from>
+  <to>/vPreProcess/AE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/vPreProcess/right:o</from>
+  <to>/COMtracker/AE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/COMtracker/LAE:o</from>
+  <to>/vPredictor/LAE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/COMtracker/LAE:o</from>
+  <to>/vFramer/right/LAE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/vPredictor/LAE:o</from>
+  <to>/vFramer/right/LAE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/vPreProcess/right:o</from>
+  <to>/vFramer/right/AE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/vFramer/right/image:o</from>
+  <to>/viewRight</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+</application>
