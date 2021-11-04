@@ -69,7 +69,7 @@ for t in tqdm(D1_files, "Loading dataset_1 trajectories..."):
     # load data
     D1_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), D1_folder, t), delimiter=",")[:, :3]
     D1_trajectory[:, 0] = np.cumsum(D1_trajectory[:, 0])
-    if D1_folder[0:7] != "asynch_" : D1_trajectory[:, 1] = 304 - D1_trajectory[:, 1]    # flip x-coordinate
+    if D1_folder[0:3] != "sim" : D1_trajectory[:, 1] = 304 - D1_trajectory[:, 1]    # flip x-coordinate
     D1_trajectory[:, 2] = 240 - D1_trajectory[:, 2]    # flip y-coordinate
     D1_trajectories.append(D1_trajectory)
 
@@ -148,7 +148,7 @@ for t in tqdm(D1_files, "Loading dataset_1 trajectories..."):
     found = False
     D1_moving_avg_traj = moving_avg(D1_trajectory, n_mov_avg)
     for i in range(1, len(D1_moving_avg_traj)-n_points-1):
-        if (D1_moving_avg_traj[i, 2] - D1_moving_avg_traj[i-1, 2] < 0) and (D1_moving_avg_traj[i+1, 2] - D1_moving_avg_traj[i, 2] > 0):
+        if (D1_moving_avg_traj[i, 2] - D1_moving_avg_traj[i-1, 2] < 0) and (D1_moving_avg_traj[i+1, 2] - D1_moving_avg_traj[i, 2] > 0) and (D1_moving_avg_traj[i, 2] < 130):
             bouncing_index = i
             found = True
             break
@@ -196,7 +196,7 @@ for t in tqdm(D2_files, "Loading dataset_2 trajectories..."):
     # load data
     D2_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), D2_folder, t), delimiter=",")[:, :3]
     D2_trajectory[:, 0] = np.cumsum(D2_trajectory[:, 0])
-    if D2_folder[0:7] != "asynch_" : D2_trajectory[:, 1] = 304 - D2_trajectory[:, 1]    # flip x-coordinate
+    if D2_folder[0:3] != "sim" : D2_trajectory[:, 1] = 304 - D2_trajectory[:, 1]    # flip x-coordinate
     D2_trajectory[:, 2] = 240 - D2_trajectory[:, 2]    # flip y-coordinate
     D2_trajectories.append(D2_trajectory)
 
@@ -275,7 +275,7 @@ for t in tqdm(D2_files, "Loading dataset_2 trajectories..."):
     found = False
     D2_moving_avg_traj = moving_avg(D2_trajectory, n_mov_avg)
     for i in range(1, len(D2_moving_avg_traj)-n_points-1):
-        if (D2_moving_avg_traj[i, 2] - D2_moving_avg_traj[i-1, 2] < 0) and (D2_moving_avg_traj[i+1, 2] - D2_moving_avg_traj[i, 2] > 0):
+        if (D2_moving_avg_traj[i, 2] - D2_moving_avg_traj[i-1, 2] < 0) and (D2_moving_avg_traj[i+1, 2] - D2_moving_avg_traj[i, 2] > 0) and (D2_moving_avg_traj[i, 2] < 130):
             bouncing_index = i
             found = True
             break
@@ -402,7 +402,7 @@ plt.show()
 # Bouncing height
 fig8 = plt.figure(8)
 ticks = [label1, label2]
-bouncing_height = [D1_bouncing_coordinates, D2_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)]]
+bouncing_height = [D1_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)], D2_bouncing_coordinates[~np.isnan(D2_bouncing_coordinates)]]
 plt.boxplot(bouncing_height, vert=True, patch_artist=True, labels=ticks)
 plt.ylabel(r' Bouncing height [pxl]')
 plt.grid()
