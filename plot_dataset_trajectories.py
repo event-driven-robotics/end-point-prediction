@@ -1,42 +1,38 @@
 
 import os, numpy as np
-from tqdm import tqdm
 from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
 
 
-datasets = ['asynch_trajectories_new']
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sim_trajectories_final')
+trajectories = sorted([traj for traj in os.listdir(path) if traj.endswith('.txt')])
 
 plt.figure(figsize=(12, 9))
-
-
+plt.gca()
 # PLOT TRAJECTORIES ONE BY ONE
-for dataset in datasets:
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), dataset)
-    num_trajs = len([traj for traj in os.listdir(path) if traj.endswith(".txt")])
-    for i in range(51, num_trajs+1):
-        plt.clf()
-        traj = np.loadtxt(os.path.join(path, 'asynch_traj_'+str(i).zfill(5)+'.txt'), delimiter=',')
-        plt.title("Trajectory #"+str(i))
-        plt.subplot(311)
-        plt.title("Trajectory # " + str(i))
-        plt.plot(np.cumsum(traj[:,0]), traj[:,1], '.')
-        plt.xlabel('time')
-        plt.ylabel('X')
-        plt.ylim([0, 304])
-        plt.subplot(312)
-        plt.plot(np.cumsum(traj[:,0]), traj[:,2], '.')
-        plt.xlabel('time')
-        plt.ylabel('Y')
-        plt.ylim([0, 240])
-        plt.gca().invert_yaxis()
-        plt.subplot(313)
-        plt.plot(traj[:,1], traj[:,2], '.')
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        plt.xlim([0, 304])
-        plt.ylim([0, 240])
-        plt.gca().invert_yaxis()
-        plt.show()
+for t in trajectories:
+    plt.clf()
+    traj = np.loadtxt(os.path.join(path, t), delimiter=',')
+    plt.title(t)
+    plt.subplot(311)
+    plt.plot(np.cumsum(traj[:,0]), traj[:,1], '.')
+    plt.xlabel('time')
+    plt.ylabel('X')
+    plt.ylim([0, 304])
+    plt.subplot(312)
+    plt.plot(np.cumsum(traj[:,0]), traj[:,2], '.')
+    plt.xlabel('time')
+    plt.ylabel('Y')
+    plt.ylim([0, 240])
+    plt.gca().invert_yaxis()
+    plt.subplot(313)
+    plt.plot(traj[:,1], traj[:,2], '.')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.xlim([0, 304])
+    plt.ylim([0, 240])
+    plt.gca().invert_yaxis()
 
 
 # # PLOT TRAJECTORIES ALL TOGETHER (x(t), y(t) and y(x))

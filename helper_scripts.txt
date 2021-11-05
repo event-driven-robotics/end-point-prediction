@@ -1,0 +1,35 @@
+
+
+
+## PLOT A REAL TRAJECTORY
+
+r_t = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), real_folder, "real_traj_00043.txt"), delimiter=",")
+plt.clf()
+plt.plot(304-r_t[:,1], 240-r_t[:,2])
+plt.xlim([0, 304])
+plt.ylim([0, 240])
+plt.show()
+
+
+
+##BOUNCING INDEXES HIGHER THAN NORMAL
+
+[idx for idx in range(len(sim_bouncing_coordinates)) if sim_bouncing_coordinates[idx] > 125]
+
+
+
+## PLOT A SIMULATED TRAJECTORY AND COMPUTE BOUNCING INDEX
+
+s_t = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), sim_folder, "asynch_traj_00024.txt"), delimiter=",")
+s_t[:,2] = 240-s_t[:,2]
+sim_moving_avg_traj = moving_avg(s_t, n_mov_avg)
+for i in range(2, len(s_t) - n_points - 1):
+    if (sim_moving_avg_traj[i, 2] - sim_moving_avg_traj[i - 1, 2] < 0) and (sim_moving_avg_traj[i + 1, 2] - sim_moving_avg_traj[i, 2] > 0):
+        bouncing_index = i
+        break
+plt.clf()
+plt.plot(sim_moving_avg_traj[:,2], 'o-')
+# plt.xlim([0, 304])
+plt.ylim([0, 240])
+plt.show()
+

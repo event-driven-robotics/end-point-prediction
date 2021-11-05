@@ -67,7 +67,7 @@ D1_bouncing_coordinates = []
 for t in tqdm(D1_files, "Loading dataset_1 trajectories..."):
 
     # load data
-    D1_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), D1_folder, t), delimiter=",")[:, :3]
+    D1_trajectory = np.loadtxt(os.path.join(D1_path, t), delimiter=",")[:, :3]
     D1_trajectory[:, 0] = np.cumsum(D1_trajectory[:, 0])
     if D1_folder[0:3] != "sim" : D1_trajectory[:, 1] = 304 - D1_trajectory[:, 1]    # flip x-coordinate
     D1_trajectory[:, 2] = 240 - D1_trajectory[:, 2]    # flip y-coordinate
@@ -194,7 +194,7 @@ D2_bouncing_coordinates = []
 for t in tqdm(D2_files, "Loading dataset_2 trajectories..."):
 
     # load data
-    D2_trajectory = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), D2_folder, t), delimiter=",")[:, :3]
+    D2_trajectory = np.loadtxt(os.path.join(D2_path, t), delimiter=",")[:, :3]
     D2_trajectory[:, 0] = np.cumsum(D2_trajectory[:, 0])
     if D2_folder[0:3] != "sim" : D2_trajectory[:, 1] = 304 - D2_trajectory[:, 1]    # flip x-coordinate
     D2_trajectory[:, 2] = 240 - D2_trajectory[:, 2]    # flip y-coordinate
