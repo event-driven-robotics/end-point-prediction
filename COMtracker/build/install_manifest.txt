@@ -1,2 +1,1 @@
-/usr/local/bin/COMtracker
-/usr/local/share/event-driven/applications/COMtracker.xml
+/usr/local/src/robot/event-driven/build/bin/COMtracker

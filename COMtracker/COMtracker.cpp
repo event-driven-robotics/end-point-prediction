@@ -121,25 +121,29 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
             setName((rf.check("name", Value("/COMtracker")).asString()).c_str());
 
             //options and parameters
-            n_mass = rf.check("events", Value(100)).asInt();
-            activation_thresh = rf.check("activation_thresh", Value(70)).asInt();
-            delta = rf.check("spatial_delta", Value(2)).asInt();
-            n_rate = rf.check("update_rate", Value(50)).asInt();
-            reset_time = rf.check("reset_time", Value(1.0)).asDouble();
-            s = rf.check("roi_width", Value(40)).asInt();
+            n_mass = rf.check("events", Value(300)).asInt32();
+            activation_thresh = rf.check("activation_thresh", Value(70)).asInt32();
+            delta = rf.check("spatial_delta", Value(2)).asInt32();
+            n_rate = rf.check("update_rate", Value(1)).asInt32();
+            reset_time = rf.check("reset_time", Value(1.0)).asFloat64();
+            s = rf.check("roi_width", Value(80)).asInt32();
             s = s/2;
 
-            if(!input_port.open(getName() + "/AE:i"))
+            if(!input_port.open(getName() + "/AE:i")) {
                 return false;
+            }
 
-            if(!v_output_port.open(getName() + "/LAE:o"))
+            if(!v_output_port.open(getName() + "/LAE:o")) {
                 return false;
+            }
 
-            if(!output_port.open(getName() + "/com:o"))
+            if(!output_port.open(getName() + "/com:o")) {
                 return false;
+            }
 
-            if(!image_out.open(getName() + "/image:o"))
+            if(!image_out.open(getName() + "/image:o")) {
                 return false;
+            }
 
             res.height = 240;
             res.width = 304;
@@ -162,7 +166,6 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
             LabelledAE ev;
             deque<LabelledAE> v_out_queue;
 
-//            double k = 1/std::sqrt(1 - activation_thresh/100);
             double k = SeriesInverseError20thOrder(activation_thresh/100.0) * sqrt(2);
             yInfo() << "For activation threshold " << activation_thresh << " k is equal to " << k;
 
@@ -267,7 +270,8 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
                     double delta_y = y - py;
                     if(std::sqrt(delta_x*delta_x + delta_y*delta_y) > delta) {
 
-                        //yInfo()<<"delta: "<< std::sqrt(delta_x*delta_x + delta_y*delta_y);
+                        yInfo() << "    x = " << x << "    y = " << y << "    dt = " << Time::now()-prev_t;
+
                         px = x;
                         py = y;
 
@@ -276,19 +280,18 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
                         ev.y = y;
                         ev.stamp = qROI.q.front().stamp;
 
-//                        yWarning() << qROI.q.size() << qROI.q.front().stamp;
-//                        yInfo() << "x = " << x << "   y = " << y;
-
                         v_out_queue.push_back(ev);
                         v_output_port.write(v_out_queue, ystamp);
 
                         yarp::os::Bottle& coordBottle = output_port.prepare();
                         coordBottle.clear();
-                        coordBottle.addDouble(x);
-                        coordBottle.addDouble(y);
+                        coordBottle.addFloat64(x);
+                        coordBottle.addFloat64(y);
+                        coordBottle.addFloat64(qROI.q.front().stamp);
+                        coordBottle.addFloat64(ystamp.getTime());
+
                         output_port.write();
                         prev_t = Time::now();
-                        //                        yInfo() << Time::now() - prev_t;
                     }
 
                     v_out_queue.clear();
@@ -304,13 +307,11 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
 
             std_dev = 0.0;
 
-//            m.lock();        //using the mutex brings issues with the resetting
             rate_to_use = n_mass;
             qROI.setSize(0);
             qROI.setROI(0, res.width, 0, res.height);
 
             tracking = false;
-//            m.unlock();
         }
 
         bool updateModule() {
@@ -323,14 +324,13 @@ class COMtracker : public yarp::os::RFModule, public yarp::os::Thread {
                 }
             }
 
+            //opencv image with tracker as red dot
             yarp::sig::ImageOf<yarp::sig::PixelBgr> &display = image_out.prepare();
             display = trackMap;
             trackMap.zero();
             trackImg = cv::cvarrToMat((IplImage *) display.getIplImage());
             cv::applyColorMap(trackImg, trackImg, cv::COLORMAP_BONE);
-
             cv::circle(trackImg, cv::Point2d(x,y), 1, cv::Scalar(0, 0, 255), -1, 8, 0);
-
             image_out.write();
 
             return Thread::isRunning();

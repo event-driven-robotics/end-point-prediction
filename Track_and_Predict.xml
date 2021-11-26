@@ -1,0 +1,89 @@
+<application>
+
+
+<name>Track_and_Predict_dataplayer</name>
+<description>Description</description>
+<version>1.0</version>
+ 
+
+<module>
+    <name> yarpdataplayer </name>
+    <parameters>  </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> vPreProcess </name>
+    <parameters>--undistort false --split_temporal --filter_spatial true --filter_temporal true --sf_time 0.05 --tf_time 0.05  --split_stereo true --combined_stereo false </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+    <name> COMtracker </name>
+    <parameters> --events 300 --activation_thresh 70 --spatial_delta 2 --update_rate 1 --reset_time 1.0 --roi_width 80 </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+  <name> vPredictor </name>
+  <parameters> --name /vPredictor  </parameters>
+  <node> localhost </node>
+</module>
+
+<module>
+    <name> vFramerLite</name>
+    <parameters> --displays "(/left (AE AE-INT))" </parameters>
+    <node> localhost </node>
+</module>
+
+<module>
+   <name> yarpview </name>
+   <parameters>--name /view --x 658 --y 30 --w 608 --h 480 --synch </parameters>
+   <node> localhost </node>
+</module>
+
+<connection>
+  <from>/file/leftdvs:o</from>
+  <to>/vPreProcess/AE:i</to>
+  <protocol> fast_tcp </protocol>
+</connection>
+
+<connection>
+  <from>/vPreProcess/left:o</from>
+  <to>/vFramer/left/AE:i</to>
+  <protocol> fast_tcp </protocol>
+</connection>
+
+<connection>
+  <from>/vPreProcess/left:o</from>
+  <to>/COMtracker/AE:i</to>
+  <protocol> fast_tcp </protocol>
+</connection>
+
+<connection>
+  <from>/COMtracker/LAE:o</from>
+  <to>/vFramer/left/LAE:i</to>
+  <protocol> fast_tcp </protocol>
+</connection>
+
+<connection>
+  <from>/COMtracker/LAE:o</from>
+  <to>/vPredictor/LAE:i</to>
+  <protocol> fast_tcp </protocol>
+</connection>
+
+<connection>
+  <from>/vPredictor/LAE:o</from>
+  <to>/vFramer/left/LAE:i</to>
+  <protocol>fast_tcp</protocol>
+</connection>
+
+<connection>
+  <from>/vFramer/left/image:o</from>
+  <to>/view</to>
+  <protocol> fast_tcp </protocol>
+</connection>
+
+
+</application>
+

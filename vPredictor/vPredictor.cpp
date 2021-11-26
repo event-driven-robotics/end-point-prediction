@@ -17,7 +17,7 @@ class vPredictor : public RFModule, public Thread {
 private:
 
     float period, reset_time;
-    bool save;
+    bool save, start;
     string log_path;
     ofstream log_file;
 
@@ -32,10 +32,9 @@ private:
     yarp::sig::Vector prediction_scaler;
 
     vWritePort LAE_output_port;
-    vReadPort< vector<LabelledAE> > input_port;
-    yarp::os::BufferedPort<yarp::os::Bottle> coordPort;
     RpcServer handler_port;
 
+    BufferedPort<Bottle> input_port;
     BufferedPort<Bottle> output_port;
 
 public:
@@ -46,13 +45,8 @@ public:
 
         //set the module name used to name ports and the module period
         setName((rf.check("name", Value("/vPredictor")).asString()).c_str());
-        period = rf.check("period", Value(1.0)).asDouble();
-        reset_time = rf.check("resetTime", Value(1.0)).asDouble();
-
-       if(!input_port.open(getName() + "/LAE:i")) {
-            yError() << "Could not open input port";
-            return false;
-        }
+        period = rf.check("period", Value(1.0)).asFloat64();
+        reset_time = rf.check("resetTime", Value(1.0)).asFloat64();
 
         if(!LAE_output_port.open(getName() + "/LAE:o")) {
             yError() << "Could not open LAE output port";
@@ -64,8 +58,9 @@ public:
             return false;
         }
 
-        if(!coordPort.open(getName() + "/coords:i"))
+        if(!input_port.open(getName() + "/tracker:i")) {
             return false;
+        }
 
         // get current file path
         string file_path = __FILE__;
@@ -93,58 +88,56 @@ public:
 
         // range of the features on which the model is trained
         input_scaler.resize(6);  //lower and upper bound for 3 features (t,x,y)
-        input_scaler[0] = 0.0; input_scaler[1] = 0.1;
+        input_scaler[0] = 0.0; input_scaler[1] = 0.01;
         input_scaler[2] = 0.0; input_scaler[3] = 304.0;
         input_scaler[4] = 0.0; input_scaler[5] = 240.0;
 
         // range of the features on which the model is trained
         prediction_scaler.resize(6);  //lower and upper bound for 3 features (t,x,y)
-        prediction_scaler[0] = -1.0; prediction_scaler[1] =  0.0;
+        prediction_scaler[0] = -2.0; prediction_scaler[1] =  0.0;
         prediction_scaler[2] = -304.0; prediction_scaler[3] =  304.0;
         prediction_scaler[4] = -240.0; prediction_scaler[5] =  240.0;
 
-//        Network::connect("/COMtrackerRight/LAE:o", "/vPredictorRight/LAE:i");
-        Network::connect("/COMtracker/coords:o", "/vPredictor/coords:i");
-        
         //open rpc port
         handler_port.open(getName()+"/rpc:i");
         attach(handler_port);
 
         save = true;
 
-        std::cout << "configure"<<std::endl;
-
         return Thread::start();
     }
 
     void run() {
 
-        double x, y;
-        double prev_t, dt = 0;
+        int counter = 0;
 
-        Stamp yarpstamp;
+        double x, y, x_pred, y_pred, t_curr, prev_t, dt;
+
+        double yarpstamp;
 
         LabelledAE v;
         deque<LabelledAE> LAE_out_queue;
 
-        //read some data to extract the t0
-        const vector<LabelledAE> *q = input_port.read(yarpstamp);
-        if(!q || Thread::isStopping()) return;
-        prev_t = q->back().stamp;
-
-        std::cout << "before loop"<<std::endl;
+        yarp::os::Bottle* coordBottle = input_port.read();
+        x = coordBottle->get(0).asFloat64();
+        y = coordBottle->get(1).asFloat64();
+        prev_t = coordBottle->get(2).asFloat64();
 
         while(true) {
 
-            const vector<LabelledAE> * q = input_port.read(yarpstamp);
-            if(!q || Thread::isStopping()) return;
+            yarp::os::Bottle* coordBottle = input_port.read();
 
-            std::cout << "inside loop"<<std::endl;
+//            yInfo() << "Spatial delta between points:  " << sqrt(pow(x- coordBottle->get(0).asFloat64(), 2) + pow(y - coordBottle->get(1).asFloat64(), 2));
 
-            dt = q->back().stamp - prev_t;
-            if(dt < 0) dt += vtsHelper::max_stamp;
+            x = coordBottle->get(0).asFloat64();
+            y = coordBottle->get(1).asFloat64();              // remember the 240!!!
+            t_curr = coordBottle->get(2).asFloat64();
+            yarpstamp = coordBottle->get(3).asFloat64();
+
+            dt = t_curr - prev_t;
+            if(dt < 0) dt += vtsHelper::max_stamp;//)*vtsHelper::tstosecs();
             dt *= vtsHelper::tsscaler;
-            prev_t = q->back().stamp;
+            prev_t = t_curr;
 
             if (dt > reset_time) {
                 model_stateful->reset_states();
@@ -152,73 +145,67 @@ public:
                 dt = 0.0;
             }
 
-            yarp::os::Bottle* coordBottle = coordPort.read();
-            x = coordBottle->get(0).asDouble();
-            y = coordBottle->get(1).asDouble();
-
-            // x = q->back().x;
-            // y = q->back().y;
-
             //OPENCV stuff
             // add tracker data to output bottle
             Bottle &pred = output_port.prepare();
             pred.clear();
-            pred.addDouble(dt);                     // dt between tracked points
-            pred.addInt(x);                         // tracker x coordinate
-            pred.addInt(y);                         // tracker y coordinate
+            pred.addFloat64(dt);                        // dt between tracked points
+            pred.addFloat64(x);                         // tracker x coordinate
+            pred.addFloat64(y);                         // tracker y coordinate
+
+            yInfo() << "dt = " << dt  << "    x = " << x  << "    y = " << y;
+
+            x_pred = x;
+            y_pred = 240 - y;
 
             // scale the input
-            scale(dt, x, y);
+            scale(dt, x_pred, y_pred);
 
-            // query the model (lines 133-137 = line 138)
-//            fdeep::tensor t(fdeep::tensor_shape(1,3),0);
-//            t.set(fdeep::tensor_pos(0,0), (float)scaled_input[0]);
-//            t.set(fdeep::tensor_pos(0,1), (float)scaled_input[1]);
-//            t.set(fdeep::tensor_pos(0,2), (float)scaled_input[2]);
-//            auto result = model_stateful->predict_stateful({t});
+            // query the model (lines 177-183 = line 184)
+/*
+            fdeep::tensor t(fdeep::tensor_shape(1,3),0);
+            t.set(fdeep::tensor_pos(0,0), (float)scaled_input[0]);
+            t.set(fdeep::tensor_pos(0,1), (float)scaled_input[1]);
+            t.set(fdeep::tensor_pos(0,2), (float)scaled_input[2]);
+            auto result = model_stateful->predict_stateful({t});
+*/
             fdeep::tensors result = model_stateful->predict_stateful({fdeep::tensor(fdeep::tensor_shape(1,3), fdeep::float_vec{(float)scaled_input[0], (float)scaled_input[1], (float)scaled_input[2]})});
             std::vector<float> vec = result[0].to_vector();
 
             // rescale the output prediction
             inverse_scale(vec);
 
-//            //measure milliseconds
-//            yInfo() << std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - t1).count();
-            // std::cout << "dt = " << dt << "   X = " << x << "   Y = " << y;
             if (save)
-                log_file << dt << " , " << x << " , " << y;
+                log_file << dt << " , " << x_pred << " , " << y_pred;
 
             // var - pred[i] is necessary because the output of the predictor is not the final position
             // but the shift between the latter and the current input
-            x = x - prediction[1];
-            // yInfo() << x;
-            y = y - prediction[2];
-            if (x < input_scaler[2]) { x = input_scaler[2]; }
-            if (x > input_scaler[3]) { x = input_scaler[3]; }
-            if (y < input_scaler[4]) { y = input_scaler[4]; }
-            if (y > input_scaler[5]) { y = input_scaler[5]; }
+            x_pred = x_pred - prediction[1];
+            y_pred = y_pred - prediction[2];
+            if (x_pred < input_scaler[2]) { x_pred = input_scaler[2]; }
+            if (x_pred > input_scaler[3]) { x_pred = input_scaler[3]; }
+            if (y_pred < input_scaler[4]) { y_pred = input_scaler[4]; }
+            if (y_pred > input_scaler[5]) { y_pred = input_scaler[5]; }
 
             // std::cout << "   E.T.A. = " << prediction[0] << "   X = " << x << "   Y = " << y << std::endl;
             if (save)
-                log_file << " , " << prediction[0] << " , " << x << " , " << y << std::endl;
-
-            std::cout << "a"<<std::endl;
+                log_file << " , " << prediction[0] << " , " << x_pred << " , " << y_pred << std::endl;
 
             // output LAE
             v.ID = 1;
-            v.x = x;
-            v.y = y;
-            v.stamp = q->back().stamp;
+            v.x = x_pred;
+            v.y = 240 - y_pred;              // remember the 240!!!
+            v.stamp = t_curr;
+            Stamp stamp = Stamp(counter, yarpstamp);
             LAE_out_queue.push_back(v);
-            LAE_output_port.write(LAE_out_queue, yarpstamp);
+            LAE_output_port.write(LAE_out_queue, stamp);
             LAE_out_queue.clear();
-
-            std::cout << "b"<<std::endl;
+            counter++;
 
             // add predictor data to output bottle
-            pred.addDouble(-prediction[0]);         // e.t.a.
-            pred.addInt(v.x);                       // predictor x coordinate
-            pred.addInt(v.y);                       // predictor y coordinate
+            pred.addFloat64(-prediction[0]);          // e.t.a.
+            pred.addFloat64(x_pred);                  // predictor x coordinate
+            pred.addFloat64(240 - y_pred);                  // predictor y coordinate
             output_port.write();
         }
     }
@@ -238,7 +225,7 @@ public:
         prediction[1] = temp2;
         prediction[2] = temp3;
     }
-    
+
     //rpc respond function
     bool respond(const Bottle &command, Bottle &reply) {
         string cmd=command.get(0).asString();
@@ -273,8 +260,8 @@ public:
 
     void onStop() {
         delete model_stateful;
-        input_port.close();
         LAE_output_port.close();
+        input_port.close();
         output_port.close();
     }
 };

@@ -1,27 +1,31 @@
 Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
-Change Dir: /code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp
+Change Dir: /usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_7e746/fast && /usr/bin/make -f CMakeFiles/cmTC_7e746.dir/build.make CMakeFiles/cmTC_7e746.dir/build
-make[1]: Entering directory '/code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_7e746.dir/src.c.o
-/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_7e746.dir/src.c.o   -c /code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_7e746
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7e746.dir/link.txt --verbose=1
-/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_7e746.dir/src.c.o  -o cmTC_7e746 
-/usr/bin/ld: CMakeFiles/cmTC_7e746.dir/src.c.o: in function `main':
-src.c:(.text+0x46): undefined reference to `pthread_create'
-/usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
-/usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
+Run Build Command(s):/usr/bin/make -f Makefile cmTC_151b4/fast && /usr/bin/make  -f CMakeFiles/cmTC_151b4.dir/build.make CMakeFiles/cmTC_151b4.dir/build
+make[1]: Entering directory '/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_151b4.dir/src.c.o
+/usr/bin/gcc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_151b4.dir/src.c.o -c /usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_151b4
+/snap/cmake/992/bin/cmake -E cmake_link_script CMakeFiles/cmTC_151b4.dir/link.txt --verbose=1
+/usr/bin/gcc CMakeFiles/cmTC_151b4.dir/src.c.o -o cmTC_151b4 
+CMakeFiles/cmTC_151b4.dir/src.c.o: In function `main':
+src.c:(.text+0x3e): undefined reference to `pthread_create'
+src.c:(.text+0x4a): undefined reference to `pthread_detach'
+src.c:(.text+0x56): undefined reference to `pthread_cancel'
+src.c:(.text+0x67): undefined reference to `pthread_join'
+src.c:(.text+0x7b): undefined reference to `pthread_atfork'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_7e746.dir/build.make:87: cmTC_7e746] Error 1
-make[1]: Leaving directory '/code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_7e746/fast] Error 2
+CMakeFiles/cmTC_151b4.dir/build.make:98: recipe for target 'cmTC_151b4' failed
+make[1]: *** [cmTC_151b4] Error 1
+make[1]: Leaving directory '/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp'
+Makefile:127: recipe for target 'cmTC_151b4/fast' failed
+make: *** [cmTC_151b4/fast] Error 2
 
 
 Source file was:
 #include <pthread.h>
 
-void* test_func(void* data)
+static void* test_func(void* data)
 {
   return data;
 }
@@ -31,6 +35,7 @@ int main(void)
   pthread_t thread;
   pthread_create(&thread, NULL, test_func, NULL);
   pthread_detach(thread);
+  pthread_cancel(thread);
   pthread_join(thread, NULL);
   pthread_atfork(NULL, NULL, NULL);
   pthread_exit(NULL);
@@ -39,20 +44,22 @@ int main(void)
 }
 
 Determining if the function pthread_create exists in the pthreads failed with the following output:
-Change Dir: /code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp
+Change Dir: /usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_5fd63/fast && /usr/bin/make -f CMakeFiles/cmTC_5fd63.dir/build.make CMakeFiles/cmTC_5fd63.dir/build
-make[1]: Entering directory '/code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_5fd63.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_5fd63.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
-Linking C executable cmTC_5fd63
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5fd63.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_5fd63.dir/CheckFunctionExists.c.o  -o cmTC_5fd63  -lpthreads 
+Run Build Command(s):/usr/bin/make -f Makefile cmTC_2760c/fast && /usr/bin/make  -f CMakeFiles/cmTC_2760c.dir/build.make CMakeFiles/cmTC_2760c.dir/build
+make[1]: Entering directory '/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2760c.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_2760c.dir/CheckFunctionExists.c.o -c /snap/cmake/992/share/cmake-3.22/Modules/CheckFunctionExists.c
+Linking C executable cmTC_2760c
+/snap/cmake/992/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2760c.dir/link.txt --verbose=1
+/usr/bin/gcc  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_2760c.dir/CheckFunctionExists.c.o -o cmTC_2760c  -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_5fd63.dir/build.make:87: cmTC_5fd63] Error 1
-make[1]: Leaving directory '/code/demo_cts/vPredictor/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_5fd63/fast] Error 2
+CMakeFiles/cmTC_2760c.dir/build.make:98: recipe for target 'cmTC_2760c' failed
+make[1]: *** [cmTC_2760c] Error 1
+make[1]: Leaving directory '/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/CMakeFiles/CMakeTmp'
+Makefile:127: recipe for target 'cmTC_2760c/fast' failed
+make: *** [cmTC_2760c/fast] Error 2
 
 
 

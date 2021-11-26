@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/COMtracker.dir/COMtracker.cpp.o"
+  "CMakeFiles/COMtracker.dir/COMtracker.cpp.o.d"
   "COMtracker"
   "COMtracker.pdb"
 )

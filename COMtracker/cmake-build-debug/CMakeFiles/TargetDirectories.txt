@@ -1,7 +1,0 @@
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/install/strip.dir
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/install/local.dir
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/COMtracker.dir
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/edit_cache.dir
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/install.dir
-/code/demo_cts/code_kitchen/COMtracker/cmake-build-debug/CMakeFiles/list_install_components.dir

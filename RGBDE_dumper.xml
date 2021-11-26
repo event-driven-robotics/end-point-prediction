@@ -1,0 +1,92 @@
+<application>
+
+<name>RGBDE_dumper</name>
+
+<dependencies>
+</dependencies>
+
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name /rgbde/rgb:o --dir /../../usr/local/src/robot/rgbde-data-acquisition/data/rgb --type image_png</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>yarpdatadumper</tag>
+    </module>
+
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name /rgbde/depth:o --dir /../../usr/local/src/robot/rgbde-data-acquisition/data/depth --type depth_compressed</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>yarpdatadumper</tag>
+    </module>
+
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name /rgbde/events_left:o --dir /../../usr/local/src/robot/rgbde-data-acquisition/data/events_left</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>yarpdatadumper</tag>
+    </module>
+
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name /rgbde/events_right:o --dir /../../usr/local/src/robot/rgbde-data-acquisition/data/events_right</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>yarpdatadumper</tag>
+    </module>
+    
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name /rgbde/COMtracker_left:o --dir /../../usr/local/src/robot/rgbde-data-acquisition/data/COMtracker_left</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>yarpdatadumper</tag>
+    </module>
+
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name /rgbde/COMtracker_right:o --dir /../../usr/local/src/robot/rgbde-data-acquisition/data/COMtracker_right</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>yarpdatadumper</tag>
+    </module>
+
+    <connection>
+        <from>/depthCamera/rgbImage:o</from>
+        <to>/rgbde/rgb:o</to>
+        <protocol>mjpeg</protocol>
+    </connection>
+
+    <connection>
+        <from>/depthCamera/depthImage:o</from>
+        <to>/rgbde/depth:o</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/vPreProcess/left:o</from>
+        <to>/rgbde/events_left:o</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/vPreProcess/right:o</from>
+        <to>/rgbde/events_right:o</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/COMtrackerLeft/LAE:o</from>
+        <to>/rgbde/COMtracker_left:o</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/COMtrackerRight/LAE:o</from>
+        <to>/rgbde/COMtracker_right:o</to>
+        <protocol>fast_tcp</protocol>
+    </connection>
+
+</application>

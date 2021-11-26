@@ -1,0 +1,113 @@
+<application>
+
+    <name>RGBDE_dataplayer</name>
+    <description>Description</description>
+    <version>1.0</version>
+ 
+
+    <module>
+      <name>yarpdataplayer</name>
+          <parameters></parameters>
+      <node>localhost</node>
+    </module>  
+ 
+    <module>
+        <name> vFramerLite </name>
+        <parameters> --displays "(/left (AE AE-INT) /right (AE))" --frameRate 30 </parameters>
+        <node>localhost</node>
+    </module>
+
+    <module>
+       <name> yarpview </name>
+       <parameters>--name /viewLeft --x 30 --y 30 --w 500 --h 400 --synch </parameters>
+       <node>localhost</node>
+    </module>
+
+    <module>
+       <name> yarpview </name>
+       <parameters>--name /viewRight --x 567 --y 30 --w 500 --h 400 --synch </parameters>
+        <node>localhost</node>
+    </module>
+
+    <module>
+      <name>yarpview</name>
+      <parameters>--name /view/rgb:i --x 30 --y 490 --w 500 --h 400 --synch </parameters>
+      <node>localhost</node>
+    </module>
+ 
+    <module>
+      <name>yarpview</name>
+      <parameters>--name /view/depth:i --x 567 --y 490 --w 500 --h 400 --synch </parameters>
+      <node>localhost</node>
+    </module>
+ 
+
+    <connection>
+      <from>/depthCamera/rgbImage:o</from>
+      <to> /view/rgb:i</to>
+      <protocol>mjpeg</protocol>
+    </connection>
+ 
+    <connection>
+      <from>/depthCamera/depthImage:o</from>
+      <to>/view/depth:i</to>
+      <protocol>udp+recv.portmonitor+type.dll+file.depthimage2</protocol>
+    </connection>
+
+    <connection>
+      <from>/zynqGrabber/AE:o</from>
+      <to>/vPreProcess/AE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/vPreProcess/left:o</from>
+      <to>/COMtrackerLeft/AE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/vPreProcess/right:o</from>
+      <to>/COMtrackerRight/AE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/COMtrackerLeft/LAE:o</from>
+      <to>/vFramer/left/LAE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/COMtrackerRight/LAE:o</from>
+      <to>/vFramer/right/LAE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/vPreProcess/left:o</from>
+      <to>/vFramer/left/AE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/vPreProcess/right:o</from>
+      <to>/vFramer/right/AE:i</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/vFramer/left/image:o</from>
+      <to>/viewLeft</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/vFramer/right/image:o</from>
+      <to>/viewRight</to>
+      <protocol>fast_tcp</protocol>
+    </connection>
+
+ 
+</application>
+

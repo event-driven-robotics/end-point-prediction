@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="vPredictor"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\share\;CMake Files\..\..\..\..\share\cmake\;CMake Files\..\..\..\..\share\cmake\YCM\;CMake Files\..\..\..\..\share\YCM\;CMake Files\..\..\..\..\share\YCM\modules\;CMake Files\..\..\..\..\share\YCM\find-modules\;CMake Files\..\..\..\..\share\eigen3\;CMake Files\..\..\..\..\share\eigen3\cmake\;CMake Files\..\..\..\..\lib\;CMake Files\..\..\..\..\lib\cmake\;CMake Files\..\..\..\..\lib\cmake\event-driven\;CMake Files\..\..\..\..\lib\cmake\frugally-deep\;CMake Files\..\..\..\..\lib\cmake\FunctionalPlus\;CMake Files\..\..\..\..\lib\cmake\nlohmann_json\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\share\;CMake Files\..\..\..\..\..\share\OpenCV\;CMake Files\..\..\yarp\;CMake Files\..\..\yarp\build\;CMake Files\..\..\yarp\build\YARP_os\;CMake Files\..\..\yarp\build\YARP_conf\;CMake Files\..\..\yarp\build\YARP_sig\;CMake Files\..\..\yarp\build\YARP_math\;CMake Files\..\..\yarp\build\YARP_dev\;CMake Files\..\..\yarp\cmake\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="vPredictor">
+				<Option output="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/vPredictor" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSING_DEPRECATED_UPPERCASE_YARP_OS_TARGET"/>
+					<Add directory="/usr/local/src/robot/yarp/src/libYARP_os/src"/>
+					<Add directory="/usr/local/src/robot/yarp/src/libYARP_conf/src"/>
+					<Add directory="/usr/local/src/robot/yarp/build/src/libYARP_conf/src"/>
+					<Add directory="/usr/local/src/robot/yarp/src/libYARP_sig/src"/>
+					<Add directory="/usr/include/opencv"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 vPredictor"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="vPredictor/fast">
+				<Option output="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/vPredictor" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSING_DEPRECATED_UPPERCASE_YARP_OS_TARGET"/>
+					<Add directory="/usr/local/src/robot/yarp/src/libYARP_os/src"/>
+					<Add directory="/usr/local/src/robot/yarp/src/libYARP_conf/src"/>
+					<Add directory="/usr/local/src/robot/yarp/build/src/libYARP_conf/src"/>
+					<Add directory="/usr/local/src/robot/yarp/src/libYARP_sig/src"/>
+					<Add directory="/usr/include/opencv"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 vPredictor/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/usr/local/src/robot/rgbde-data-acquisition/vPredictor/build/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/vPredictor.cpp">
+			<Option target="vPredictor"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/cmake/YCM/YCMConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\cmake\YCM\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/cmake/YCM/YCMConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\cmake\YCM\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/YCM/modules/AddInstallRPATHSupport.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\YCM\modules\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/YCM/find-modules/FindOpenCV.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\YCM\find-modules\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/eigen3/cmake/Eigen3Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\eigen3\cmake\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/eigen3/cmake/Eigen3ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\eigen3\cmake\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../share/eigen3/cmake/Eigen3Targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\share\eigen3\cmake\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/event-driven/event-driven-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\event-driven\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/event-driven/event-driven-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\event-driven\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/event-driven/event-driven-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\event-driven\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/event-driven/event-driven-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\event-driven\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/frugally-deep/frugally-deepConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\frugally-deep\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/frugally-deep/frugally-deepConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\frugally-deep\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/frugally-deep/frugally-deepTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\frugally-deep\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/FunctionalPlus/FunctionalPlusConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\FunctionalPlus\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/FunctionalPlus/FunctionalPlusConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\FunctionalPlus\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/FunctionalPlus/FunctionalPlusTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\FunctionalPlus\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/nlohmann_json/nlohmann_jsonConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\nlohmann_json\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\nlohmann_json\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../lib/cmake/nlohmann_json/nlohmann_jsonTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\lib\cmake\nlohmann_json\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../../share/OpenCV/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../../share/OpenCV/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../../share/OpenCV/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../../../../share/OpenCV/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARPConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARPConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_os/YARP_osConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_os\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_os/YARP_osConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_os\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_os/YARP_osTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_os\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_conf/YARP_confConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_conf\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_conf/YARP_confConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_conf\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_conf/YARP_confTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_conf\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_sig/YARP_sigConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_sig\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_sig/YARP_sigConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_sig\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_sig/YARP_sigTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_sig\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_math/YARP_mathConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_math\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_math/YARP_mathConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_math\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_math/YARP_mathTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_math\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_dev/YARP_devConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_dev\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_dev/YARP_devConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_dev\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/build/YARP_dev/YARP_devTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\build\YARP_dev\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/cmake/YarpInstallationHelpers.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\cmake\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/cmake/YarpPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\cmake\"/>
+		</Unit>
+		<Unit filename="/usr/local/src/robot/rgbde-data-acquisition/vPredictor/../../yarp/cmake/YarpPrintFeature.cmake">
+			<Option virtualFolder="CMake Files\..\..\yarp\cmake\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

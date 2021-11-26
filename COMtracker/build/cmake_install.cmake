@@ -1,8 +1,8 @@
-# Install script for directory: /code/demo_cts/COMtracker
+# Install script for directory: /usr/local/src/robot/rgbde-data-acquisition/COMtracker
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/usr/local")
+  set(CMAKE_INSTALL_PREFIX "/usr/local/src/robot/event-driven/build")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,28 +37,29 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
+# Set default install directory permissions.
+if(NOT DEFINED CMAKE_OBJDUMP)
+  set(CMAKE_OBJDUMP "/usr/bin/objdump")
+endif()
+
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker")
     file(RPATH_CHECK
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker"
-         RPATH "$ORIGIN/:$ORIGIN/../lib:/usr/local/lib")
+         RPATH "$ORIGIN/:$ORIGIN/../lib:/usr/local/src/robot/yarp/build/lib:/usr/local/lib")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/code/demo_cts/COMtracker/build/COMtracker")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/usr/local/src/robot/rgbde-data-acquisition/COMtracker/build/COMtracker")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker"
-         OLD_RPATH "/usr/local/lib::::::::::::::::::::::::"
-         NEW_RPATH "$ORIGIN/:$ORIGIN/../lib:/usr/local/lib")
+         OLD_RPATH "/usr/local/src/robot/yarp/build/lib:/usr/local/lib::::::::::::::::::::::::"
+         NEW_RPATH "$ORIGIN/:$ORIGIN/../lib:/usr/local/src/robot/yarp/build/lib:/usr/local/lib")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/COMtracker")
     endif()
   endif()
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/event-driven/applications" TYPE FILE FILES "/code/demo_cts/COMtracker/app/COMtracker.xml")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -69,5 +70,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/code/demo_cts/COMtracker/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/usr/local/src/robot/rgbde-data-acquisition/COMtracker/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
